@@ -1,6 +1,6 @@
 # 🦄 Minimal DEX — Constant Product AMM
 
-This project implements a **Minimal Decentralized Exchange (DEX)** with a Uniswap v1-style **Constant Product Automated Market Maker (AMM)** using Solidity. It supports swaps between **ETH** and **DAI** with slippage protection, invariant enforcement, and modular contract design.
+This project implements a **Minimal Decentralized Exchange (DEX)** with a Uniswap v1-style **Constant Product Automated Market Maker (AMM)** using Solidity. It supports swaps between **ETH** and **USDC** with slippage protection, invariant enforcement, and modular contract design.
 
 ---
 
@@ -9,7 +9,7 @@ This project implements a **Minimal Decentralized Exchange (DEX)** with a Uniswa
 ### 🧱 `AMM.sol`
 Implements the core AMM logic:
 
-- Maintains ETH and DAI reserves via an internal `LPool`
+- Maintains ETH and USDC reserves via an internal `LPool`
 - Enforces `x * y = k` invariant
 - Supports token swaps with slippage protection
 - Emits `Swapped` events
@@ -17,7 +17,7 @@ Implements the core AMM logic:
 ### 💧 `LPool.sol`
 A liquidity pool that stores:
 
-- Internal reserves of ETH and DAI
+- Internal reserves of ETH and USDC
 - Getter and update functions for managing reserves
 - Invariant calculation for post-swap validation
 
@@ -32,7 +32,7 @@ A user-facing router that:
 
 ## 🔐 Security Features
 
-- ✅ Token validation (`DAI` or `ETH` only)
+- ✅ Token validation (`USDC` or `ETH` only)
 - ✅ Invariant enforcement post-swap
 - ✅ Slippage percentage check to protect against front-running
 - ✅ Balance and liquidity checks before swaps
@@ -44,8 +44,8 @@ A user-facing router that:
 1. User calls `swapTokens()` with:
    - `amountIn` (token quantity to swap)
    - `slippagePercent` (tolerated price change)
-   - `tokenInString` ("DAI" or "ETH")
-   - `tokenOutString` ("ETH" or "DAI")
+   - `tokenInString` ("USDC" or "ETH")
+   - `tokenOutString` ("ETH" or "USDC")
 
 2. `AMM` calculates expected output
 3. Slippage tolerance is applied
@@ -56,9 +56,9 @@ A user-facing router that:
 ## 🔢 Constants
 
 - Initial reserves:
-  - `DAI_RESERVE = 150000 ether`
+  - `USDC_RESERVE = 150000 ether`
   - `ETH_RESERVE = 100 ether`
-- Initial price: `1 ETH = 1500 DAI`
+- Initial price: `1 ETH = 1500 USDC`
 
 ---
 
@@ -66,9 +66,9 @@ A user-facing router that:
 
 | Test | Description |
 |------|-------------|
-| ✅ Swap DAI → ETH with 1% slippage |
-| ✅ Swap ETH → DAI with 2% slippage |
-| ✅ Revert if tokens are not DAI/ETH |
+| ✅ Swap USDC → ETH with 1% slippage |
+| ✅ Swap ETH → USDC with 2% slippage |
+| ✅ Revert if tokens are not USDC/ETH |
 | ✅ Revert if amountIn is 0 |
 | ✅ Revert if output below slippage tolerance |
 | ✅ Revert if invariant breaks |
@@ -79,4 +79,4 @@ A user-facing router that:
 
 ```solidity
 // Example:
-dex.swapTokens(1000 ether, 2, "DAI", "ETH");
+dex.swapTokens(1000 ether, 2, "USDC", "ETH");

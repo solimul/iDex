@@ -8,14 +8,14 @@ import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20
 /**
  * @title AMM
  * @author Md Solimul Chowdhury
- * @notice This contract is an Automated Market Maker (AMM) for ETH and DAI.
- * @dev It allows users to deposit and withdraw ETH and DAI, and provides functions to get the reserves of each token.
+ * @notice This contract is an Automated Market Maker (AMM) for ETH and USDC.
+ * @dev It allows users to deposit and withdraw ETH and USDC, and provides functions to get the reserves of each token.
  */
 
 contract AMM {
     error INSUFFICIENT_SWAP_AMOUNT();
     error NEEDS_DIFFERENT_TOKEN ();
-    error TOKENS_NEED_TO_BE_EITHER_DAI_OR_ETH();
+    error TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
     error INSUFFICIENT_BALANCE (uint256 balance, uint256 amountIn);
     error INSUFFICIENT_LIQUIDITY(uint256 poolBalance, uint256 requestedOut);
     error INVARIANT_BROKEN(uint256 poolBalance, uint256 requestedOut);
@@ -27,15 +27,15 @@ contract AMM {
         address tokenOut
     );
 
-    // 1ETH = 1500 DAI
-    // 1 DAI = 0.00066667 ETH
-    uint256 constant DAI_RESERVE = 150000 ether;
-    uint256 constant ETH_RESERVE = 100 ether;
+    // 1ETH = 1500 USDC
+    // 1 USDC = 0.00066667 ETH
+    uint256 constant USDC_RESERVE = 1 * 10 ** 6;
+    uint256 constant ETH_RESERVE = 1 * 10 ** 15;
 
 
     LPool private lPool;
     address private immutable i_owner;
-    address private immutable i_dai;
+    address private immutable i_usdc;
     address private immutable i_eth;
 
     uint256 private immutable invariant;
@@ -43,12 +43,23 @@ contract AMM {
     mapping (string => address) private tokenMap;
 
     constructor () {
-        lPool = new LPool (DAI_RESERVE, ETH_RESERVE);
-        i_dai = lPool.getDAIContract ();
+        lPool = new LPool( ETH_RESERVE, USDC_RESERVE );
+        i_usdc = lPool.getUSDCContract ();
         i_eth = lPool.getETHContract ();
-        invariant = DAI_RESERVE * ETH_RESERVE;
-        tokenMap["DAI"] = i_dai;
+        invariant = USDC_RESERVE * ETH_RESERVE;
+        tokenMap["USDC"] = i_usdc;
         tokenMap["ETH"] = i_eth;
+    }
+
+
+    function getLPoolAddress () external view returns (address) {
+        return address(lPool);
+    }
+    function getUSDCContract () external view returns (address) {
+        return i_usdc;
+    }
+    function getETHContract () external view returns (address) {
+        return i_eth;
     }
 
     modifier requireCheck (
@@ -58,9 +69,9 @@ contract AMM {
         ) {
          if (amountIn <=0 ) revert INSUFFICIENT_SWAP_AMOUNT();
         if (tokenIn == tokenOut) revert NEEDS_DIFFERENT_TOKEN();
-        bool validToken = (tokenIn == i_dai && tokenOut == i_eth)
-                        || (tokenIn == i_eth && tokenOut == i_dai); 
-        if (!validToken) revert TOKENS_NEED_TO_BE_EITHER_DAI_OR_ETH();
+        bool validToken = (tokenIn == i_usdc && tokenOut == i_eth)
+                        || (tokenIn == i_eth && tokenOut == i_usdc); 
+        if (!validToken) revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
         _;
     }
 
@@ -76,10 +87,10 @@ contract AMM {
         address tokenOut
     ) internal view returns (uint256) {
         uint256 amountOut;
-        if (tokenIn == i_dai && tokenOut == i_eth) {
-            amountOut = (amountIn * lPool.getReserveETH()) / (lPool.getReserveDAI() + amountIn);
-        } else if (tokenIn == i_eth && tokenOut == i_dai) {
-            amountOut = (amountIn * lPool.getReserveDAI()) / (lPool.getReserveETH() + amountIn);
+        if (tokenIn == i_usdc && tokenOut == i_eth) {
+            amountOut = (amountIn * lPool.getReserveETH()) / (lPool.getReserveUSDC() + amountIn);
+        } else if (tokenIn == i_eth && tokenOut == i_usdc) {
+            amountOut = (amountIn * lPool.getReserveUSDC()) / (lPool.getReserveETH() + amountIn);
         }
         return amountOut;
     }
@@ -145,16 +156,23 @@ contract AMM {
         string memory tokenInString,
         string memory tokenOutString
     ) public  {
-        bool validToken = (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("DAI")) && 
+        bool validToken = (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("USDC")) && 
                         keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("ETH"))) ||
                         (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("ETH")) && 
-                        keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("DAI")));
+                        keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("USDC")));
         if (!validToken)
-            revert TOKENS_NEED_TO_BE_EITHER_DAI_OR_ETH();
+            revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
         
 
         address tokenIn = tokenMap[tokenInString];
         address tokenOut = tokenMap[tokenOutString];
         swap (amountIn, slippagePrecentage, tokenIn, tokenOut);
     }
+
+    function fundContract (
+        address sender
+    ) public {
+        lPool.fundContract(sender);
+    }
+
 }

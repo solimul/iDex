@@ -20,23 +20,23 @@ import {MockERC20} from "../mocks/MockERC20.sol";
 contract NetworkConfig {
 
     address private immutable i_owner;
-    address private immutable i_dai;
+    address private immutable i_usdc;
     address private immutable i_eth;
-    MockERC20 private immutable i_mockerc20_dai;
+    MockERC20 private immutable i_mockerc20_usdc;
     MockERC20 private immutable i_mockerc20_eth;
 
     constructor () {
         i_owner = msg.sender;
         if (block.chainid == 31337) { // test-net 
-            i_dai = address(new MockERC20("Mock DAI", "mDAI"));
+            i_usdc = address(new MockERC20("Mock USDC", "mUSDC"));
             i_eth = address(new MockERC20("Mock ETH", "mETH"));
 
         } else if (block.chainid == 11155111) {  // sepolia
-            i_dai = 0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844; // DAI
+            i_usdc = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 ; // USDC
             i_eth = 0xdd13E55209Fd76AfE204dBda4007C227904f0a81; // WETH
             /** 
              * Token	Faucet
-                    DAI	https://sepoliafaucet.com/ or from Aave/Gelato testnet UI
+                    USDC	https://sepoliafaucet.com/ or from Aave/Gelato testnet UI
                     WETH	Chainlink Sepolia Faucet
              * **/
         }
@@ -46,12 +46,12 @@ contract NetworkConfig {
         return i_owner;
     }
 
-    function getDAIContract () external view returns (address) {
-        return i_dai;
+    function getUSDCContract () external view returns (address) {
+        return i_usdc;
     }
 
     function getETHContract () external view returns (address) {
         return i_eth;
     }
-    // Define the mainnet and testnet addresses for DAI and WETH
+    // Define the mainnet and testnet addresses for USDC and WETH
 }

@@ -34,4 +34,22 @@ contract MinimalDex {
        ) public {
         amm.swapTokens(amountIn, slippagePrecentage, tokenInString, tokenOutString);
     }
+
+    function fundContract (address sender) public {
+        amm.fundContract(sender);
+    }
+
+    function getUSDCContract () external view returns (address) {
+        return amm.getUSDCContract();
+    }
+    function getETHContract () external view returns (address) {
+        return amm.getETHContract();
+    }
+
+    function getLPoolAddress () external view returns (address) {
+        return amm.getLPoolAddress();
+    }
+
+    
+
 }
