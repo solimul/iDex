@@ -29,8 +29,7 @@ contract AMM {
 
     // 1ETH = 1500 USDC
     // 1 USDC = 0.00066667 ETH
-    uint256 constant USDC_RESERVE = 1 * 10 ** 6;
-    uint256 constant ETH_RESERVE = 1 * 10 ** 15;
+
 
 
     LPool private lPool;
@@ -42,7 +41,7 @@ contract AMM {
 
     mapping (string => address) private tokenMap;
 
-    constructor () {
+    constructor (uint256 USDC_RESERVE, uint256 ETH_RESERVE) {
         lPool = new LPool( ETH_RESERVE, USDC_RESERVE );
         i_usdc = lPool.getUSDCContract ();
         i_eth = lPool.getETHContract ();
@@ -61,6 +60,8 @@ contract AMM {
     function getETHContract () external view returns (address) {
         return i_eth;
     }
+
+
 
     modifier requireCheck (
         uint256 amountIn,
