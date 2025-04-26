@@ -4,42 +4,48 @@ pragma solidity ^0.8.26;
 import {Script, console} from "forge-std/Script.sol";
 import {MinimalDex} from "../src/MinimalDex.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {HelperConfig} from "../helper/HelperConfig.h.sol";
 
 contract DeployMinimalDex is Script {
 
-  function deployMinimalDex() public {
-    uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-    address deployer   = vm.addr(deployerKey);
+    uint256 private _usdc = 1 * 10 ** 6;
+    uint256 private _eth = 1 * 10 ** 15;
+    
+    function deployMinimalDex() public {
+        
+        uint256 deployerKey = vm.envUint(getDeployerKeyName());
+        address deployer   = vm.addr(deployerKey);
 
-    vm.startBroadcast(deployerKey);
-        console.log("Deploying MinimalDex with account:", deployer);
-
-        // 1) Deploy
-        MinimalDex dex = new MinimalDex();
-        console.log("MinimalDex deployed to:", address(dex));
-
+        vm.startBroadcast(deployerKey);
+        //  1) Deploy
+        MinimalDex dex = new MinimalDex (_usdc, _eth);
         // 2) Approve LPool to pull tokens
-        address usdc  = dex.getUSDCContract();
-        address weth  = dex.getETHContract();
-        address lpool = dex.getLPoolAddress();
-
-        // these execute as txs from your EOA because broadcast is active
-        IERC20(usdc).approve(lpool, 1 * 10 ** 6);    // 1 USDC (6 decimals)
-        IERC20(weth).approve(lpool, 1 * 10 ** 15);   // 0.001 WETH (18 decimals)
-
+        configureApprovals(dex);
         // 3) Fund the pool (pulls from deployer)
         dex.fundContract(deployer);
         vm.stopBroadcast();
     }
 
     function configureApprovals(MinimalDex dex) internal {
-        address usdc  = dex.getUSDCContract();
-        address weth  = dex.getETHContract();
-        address lpool = dex.getLPoolAddress();
+        if (block.chainid == 11155111) {
+            address usdcContract  = dex.getUSDCContract();
+            address wethContract  = dex.getETHContract();
+            address lpool = dex.getLPoolAddress();
 
-        // these execute as txs from your EOA because broadcast is active
-        IERC20(usdc).approve(lpool, 1 * 10 ** 6);    // 1 USDC (6 decimals)
-        IERC20(weth).approve(lpool, 1 * 10 ** 15);   // 0.001 WETH (18 decimals)
+            // these execute as txs from your EOA because broadcast is active
+            IERC20(usdcContract).approve(lpool, _usdc);    // 1 USDC (6 decimals)
+            IERC20(wethContract).approve(lpool, _eth);   // 0.001 WETH (18 decimals)
+        }
+    }
+
+    function getDeployerKeyName() internal view returns (string memory) {
+        string memory privateKeyName;
+        if (block.chainid == 11155111) {
+          privateKeyName = "PRIVATE_KEY";
+        } else if (block.chainid == 31337) {
+          privateKeyName = "ANVIL_PRIVATE_KEY";
+        }
+        return privateKeyName;
     }
     
     function run() external {

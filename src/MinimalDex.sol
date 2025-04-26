@@ -8,8 +8,8 @@ contract MinimalDex {
     address private immutable i_owner;
     
 
-    constructor () {
-        amm = new AMM ();
+    constructor (uint256 _usdcAmount, uint256 _ethAmount) {
+        amm = new AMM (_usdcAmount, _ethAmount);
         i_owner = msg.sender;
     }
 
