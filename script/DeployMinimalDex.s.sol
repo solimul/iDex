@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.29;
 
 import {Script, console} from "forge-std/Script.sol";
 import {MinimalDex} from "../src/MinimalDex.sol";

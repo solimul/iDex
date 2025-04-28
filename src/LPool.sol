@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.29;
 import {Funding} from "./Funding.sol";
 import {NetworkConfig} from "./NetworkConfig.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
@@ -68,6 +68,10 @@ contract LPool {
         return i_eth;
     }
 
+      function getLPoolAddress () external view returns (address) {
+        return address(this);
+    }
+
     function getInvariant () external view returns (uint256) {
         return s_reserveETH * s_reserveUSDC;
     }
@@ -121,5 +125,7 @@ contract LPool {
             require(ethSuccess, "ETH funding failed");
         }
     }
+
+  
 
 }
