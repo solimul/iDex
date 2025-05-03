@@ -1,0 +1,74 @@
+Compiling 1 files with Solc 0.8.29
+Solc 0.8.29 finished in 795.13ms
+Compiler run successful with warnings:
+Warning (2519): This declaration shadows an existing declaration.
+  --> test/unit/MinimalDex.t.sol:32:33:
+   |
+32 |     function configureApprovals(MinimalDex dex) internal {
+   |                                 ^^^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+  --> test/unit/MinimalDex.t.sol:20:5:
+   |
+20 |     MinimalDex dex ;
+   |     ^^^^^^^^^^^^^^
+
+
+Ran 3 tests for test/unit/MinimalDex.t.sol:MinimalDexTest
+[PASS] testReserveETH() (gas: 17154)
+Logs:
+  reserveETH:  1000000000000000 1000000000000000
+
+Traces:
+  [17154] MinimalDexTest::testReserveETH()
+    ├─ [2520] LPool::getETHPoolAmount() [staticcall]
+    │   └─ ← [Return] 1000000000000000 [1e15]
+    ├─ [0] console::log("reserveETH: ", 1000000000000000 [1e15], 1000000000000000 [1e15]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] VM::assertEq(1000000000000000 [1e15], 1000000000000000 [1e15], "Reserve ETH should be 0.001") [staticcall]
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+[PASS] testReserveUSDC() (gas: 13417)
+Traces:
+  [13417] MinimalDexTest::testReserveUSDC()
+    ├─ [2478] LPool::getUSDCPoolAmount() [staticcall]
+    │   └─ ← [Return] 1000000 [1e6]
+    ├─ [0] VM::assertEq(1000000 [1e6], 1000000 [1e6], "Reserve USDC should be 1") [staticcall]
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+[PASS] testSwapExpectRevert() (gas: 61690)
+Logs:
+  Swapper:  0x6d2eed85750d316088343D6d5e91ca59eb052768 1000000 1000000000000000
+
+Traces:
+  [61690] MinimalDexTest::testSwapExpectRevert()
+    ├─ [0] VM::expectRevert(custom error 0xf4844814)
+    │   └─ ← [Return]
+    ├─ [52813] MinimalDex::swap(1000, 0, "USDC", "ETH")
+    │   ├─ [44926] AMM::swapTokens(1000, 0, "USDC", "ETH")
+    │   │   ├─ [6435] LPool::getUSDCAmount() [staticcall]
+    │   │   │   ├─ [2850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
+    │   │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   ├─ [6392] LPool::getETHAmount() [staticcall]
+    │   │   │   ├─ [2850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
+    │   │   │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   │   ├─ [0] console::log("Swapper: ", LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], 1000000 [1e6], 1000000000000000 [1e15]) [staticcall]
+    │   │   │   └─ ← [Stop]
+    │   │   ├─ [850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   ├─ [2478] LPool::getUSDCPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   ├─ [2520] LPool::getETHPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   │   ├─ [3787] MockERC20::transferFrom(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], AMM: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], 1000)
+    │   │   │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
+    │   │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
+    │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
+    └─ ← [Stop]
+
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 3.70ms (1.14ms CPU time)
+
+Ran 1 test suite in 17.88ms (3.70ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)

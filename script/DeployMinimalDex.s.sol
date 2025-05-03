@@ -33,8 +33,8 @@ contract DeployMinimalDex is Script {
             address lpool = dex.getLPoolAddress();
 
             // these execute as txs from your EOA because broadcast is active
-            IERC20(usdcContract).approve(lpool, _usdc);    // 1 USDC (6 decimals)
-            IERC20(wethContract).approve(lpool, _eth);   // 0.001 WETH (18 decimals)
+            IERC20(usdcContract).approve(lpool, type(uint256).max);    // 1 USDC (6 decimals)
+            IERC20(wethContract).approve(lpool, type(uint256).max);   // 0.001 WETH (18 decimals)
         }
     }
 

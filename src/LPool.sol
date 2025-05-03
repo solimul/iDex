@@ -48,12 +48,20 @@ contract LPool {
         _;
     }
 
-    function getReserveETH () external view returns (uint256) {
+    function getETHPoolAmount () external view returns (uint256) {
         return s_reserveETH;
     }
 
-    function getReserveUSDC () external view returns (uint256) {
+    function getUSDCPoolAmount () external view returns (uint256) {
         return s_reserveUSDC;
+    }
+
+    function getUSDCAmount () external view returns (uint256) {
+        return IERC20(i_usdc).balanceOf(address(this));
+    }
+
+    function getETHAmount () external view returns (uint256) {
+        return IERC20(i_eth).balanceOf(address(this));
     }
 
     function getOwner () external view returns (address) {
@@ -75,6 +83,8 @@ contract LPool {
     function getInvariant () external view returns (uint256) {
         return s_reserveETH * s_reserveUSDC;
     }
+
+    
 
 
     function updateReserveETH (uint256 _reserveETH) external {
@@ -124,7 +134,14 @@ contract LPool {
             require(usdcSuccess, "USDC funding failed");
             require(ethSuccess, "ETH funding failed");
         }
+
+        
     }
+
+    function intakeToken (address token, address from, uint256 amount) external {
+        IERC20(token).transferFrom (from, address (this), amount); // or transferFrom if logic changes
+    }
+    
 
   
 
