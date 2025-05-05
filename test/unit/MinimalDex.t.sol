@@ -41,8 +41,10 @@ contract MinimalDexTest is Test {
             // For local testing, we can use the MockERC20 contract to mint tokens
             MockERC20 usdc = MockERC20(dex.getUSDCContract());
             MockERC20 weth = MockERC20(dex.getETHContract());
-            usdc.mint(lpool.getLPoolAddress(), _reserveUSDC);
-            weth.mint(lpool.getLPoolAddress(), _rserveETH);
+            usdc.mint(address (lpool), _reserveUSDC);
+            weth.mint(address (lpool), _rserveETH);
+            IERC20(dex.getUSDCContract()).approve(address(lpool), type(uint256).max);
+            IERC20(dex.getETHContract()).approve(address(lpool), type(uint256).max);
         }
     }
 
@@ -72,9 +74,21 @@ contract MinimalDexTest is Test {
         assertEq(reserveUSDC, _reserveUSDC, "Reserve USDC should be 1");
     }
 
-    function testSwapExpectRevert () public {
+    function testSwapExpectRevert() public {
+        // ── 1) seed yourself & approve the DEX for the user-pull ──
+        MockERC20 usdc = MockERC20(dex.getUSDCContract());
+        usdc.mint(address(this), _reserveUSDC * 10);
+        usdc.approve(address(dex), type(uint256).max);
+
+        // ── 2) now tell LPool to approve the DEX for the pool-pull ──
+        vm.startPrank(address(lpool));
+        IERC20(dex.getUSDCContract()).approve(address(dex), type(uint256).max);
+        IERC20(dex.getETHContract()  ).approve(address(dex), type(uint256).max);
+        vm.stopPrank();
+
+        // ── 3) finally, call swap and expect it to revert somewhere downstream ──
         vm.expectRevert();
-        dex.swap (1 * 10 ** 3, 0,  "USDC", "ETH");
+        dex.swap(1 * 10**8, 0, "USDC", "ETH");
     }
 
 

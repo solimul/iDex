@@ -1,5 +1,5 @@
 Compiling 1 files with Solc 0.8.29
-Solc 0.8.29 finished in 795.13ms
+Solc 0.8.29 finished in 1.13s
 Compiler run successful with warnings:
 Warning (2519): This declaration shadows an existing declaration.
   --> test/unit/MinimalDex.t.sol:32:33:
@@ -37,38 +37,53 @@ Traces:
     │   └─ ← [Return]
     └─ ← [Stop]
 
-[PASS] testSwapExpectRevert() (gas: 61690)
-Logs:
-  Swapper:  0x6d2eed85750d316088343D6d5e91ca59eb052768 1000000 1000000000000000
-
+[PASS] testSwapExpectRevert() (gas: 159532)
 Traces:
-  [61690] MinimalDexTest::testSwapExpectRevert()
+  [159532] MinimalDexTest::testSwapExpectRevert()
+    ├─ [6064] MinimalDex::getUSDCContract() [staticcall]
+    │   ├─ [468] AMM::getUSDCContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 10000000 [1e7])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 10000000 [1e7])
+    │   └─ ← [Stop]
+    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   └─ ← [Return] true
+    ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
+    │   └─ ← [Return]
+    ├─ [1564] MinimalDex::getUSDCContract() [staticcall]
+    │   ├─ [468] AMM::getUSDCContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   └─ ← [Return] true
+    ├─ [1434] MinimalDex::getETHContract() [staticcall]
+    │   ├─ [381] AMM::getETHContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
+    │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
+    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   └─ ← [Return] true
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
     ├─ [0] VM::expectRevert(custom error 0xf4844814)
     │   └─ ← [Return]
-    ├─ [52813] MinimalDex::swap(1000, 0, "USDC", "ETH")
-    │   ├─ [44926] AMM::swapTokens(1000, 0, "USDC", "ETH")
-    │   │   ├─ [6435] LPool::getUSDCAmount() [staticcall]
-    │   │   │   ├─ [2850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
-    │   │   │   │   └─ ← [Return] 1000000 [1e6]
-    │   │   │   └─ ← [Return] 1000000 [1e6]
-    │   │   ├─ [6392] LPool::getETHAmount() [staticcall]
-    │   │   │   ├─ [2850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
-    │   │   │   │   └─ ← [Return] 1000000000000000 [1e15]
-    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
-    │   │   ├─ [0] console::log("Swapper: ", LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], 1000000 [1e6], 1000000000000000 [1e15]) [staticcall]
-    │   │   │   └─ ← [Stop]
-    │   │   ├─ [850] MockERC20::balanceOf(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]) [staticcall]
-    │   │   │   └─ ← [Return] 1000000 [1e6]
-    │   │   ├─ [2478] LPool::getUSDCPoolAmount() [staticcall]
-    │   │   │   └─ ← [Return] 1000000 [1e6]
-    │   │   ├─ [2520] LPool::getETHPoolAmount() [staticcall]
-    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
-    │   │   ├─ [3787] MockERC20::transferFrom(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], AMM: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], 1000)
-    │   │   │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
-    │   │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
-    │   └─ ← [Revert] ERC20InsufficientAllowance(0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06, 0, 1000)
+    ├─ [19703] MinimalDex::swap(100000000 [1e8], 0, "USDC", "ETH")
+    │   ├─ [3747] AMM::getTokenAddress("USDC") [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    │   ├─ [3747] AMM::getTokenAddress("ETH") [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
+    │   ├─ [2537] AMM::getLPoolAddress() [staticcall]
+    │   │   └─ ← [Return] LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]
+    │   ├─ [850] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
+    │   │   └─ ← [Return] 10000000 [1e7]
+    │   ├─ [850] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
+    │   │   └─ ← [Return] 10000000 [1e7]
+    │   └─ ← [Revert] INSUFFICIENT_BALANCE(10000000 [1e7], 100000000 [1e8])
     └─ ← [Stop]
 
-Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 3.70ms (1.14ms CPU time)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 5.91ms (2.17ms CPU time)
 
-Ran 1 test suite in 17.88ms (3.70ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)
+Ran 1 test suite in 23.08ms (5.91ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)

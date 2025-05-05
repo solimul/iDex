@@ -90,8 +90,9 @@ contract AMM {
     }
 
     function enforceInvariant(address tokenOut, uint256 amountOut) public view {
+        console.log("Invariant: ", invariant, lPool.getInvariant(), invariant * 999 / 1000);
         if (lPool.getInvariant() < invariant * 999 / 1000) {
-            revert INVARIANT_BROKEN(IERC20(tokenOut).balanceOf(address(this)), amountOut);
+            revert INVARIANT_BROKEN(IERC20(tokenOut).balanceOf(address(lPool)), amountOut);
         }
     }
 
@@ -113,8 +114,8 @@ contract AMM {
         address tokenOut,
         uint256 amountOut
     ) public view {
-        if (IERC20(tokenOut).balanceOf(address(this)) < amountOut) 
-            revert INSUFFICIENT_LIQUIDITY(IERC20(tokenOut).balanceOf(address(this)), amountOut);
+        if (IERC20(tokenOut).balanceOf(address (lPool)) < amountOut) 
+            revert INSUFFICIENT_LIQUIDITY(IERC20(tokenOut).balanceOf(address (lPool)), amountOut);
     }
 
     

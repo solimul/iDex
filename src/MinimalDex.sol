@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {AMM} from "./AMM.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {LPool} from "./LPool.sol";
+import {console} from "../lib/forge-std/src/console.sol";
 
 
 contract MinimalDex {
@@ -99,7 +100,9 @@ function checkInsuffientBalance (
         uint256 amountOut = amm.calculateOutAmount (amountIn, tokenIn, tokenOut);
         amm.checkInsufficientLiquidity (tokenOut, amountOut);
         // Transfer the tokens from the contract to the swapper
+        //console.log("to: ", to, IERC20(tokenOut).balanceOf (to));
         IERC20(tokenOut).transferFrom(to, from, amountOut);
+
         (LPool (amm.getLPoolAddress ())).updateLPool(tokenOut, amountIn, amountOut);
         amm.enforceInvariant(tokenOut, amountOut);
         emit Swapped (amountIn, tokenIn, amountOut, tokenOut);
