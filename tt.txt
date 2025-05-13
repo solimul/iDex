@@ -1,66 +1,54 @@
-Compiling 1 files with Solc 0.8.29
-Solc 0.8.29 finished in 778.29ms
-Compiler run successful with warnings:
-Warning (2519): This declaration shadows an existing declaration.
-  --> test/unit/MinimalDex.t.sol:35:33:
-   |
-35 |     function configureApprovals(MinimalDex dex) internal {
-   |                                 ^^^^^^^^^^^^^^
-Note: The shadowed declaration is here:
-  --> test/unit/MinimalDex.t.sol:22:5:
-   |
-22 |     MinimalDex dex ;
-   |     ^^^^^^^^^^^^^^
-
+Compiling 2 files with Solc 0.8.29
+Solc 0.8.29 finished in 1.14s
+Compiler run successful!
 
 Ran 6 tests for test/unit/MinimalDex.t.sol:MinimalDexTest
-[PASS] testReserveETH() (gas: 17176)
-Logs:
-  reserveETH:  1000000000000000 1000000000000000
-
+[PASS] testReserveETH() (gas: 13513)
 Traces:
-  [17176] MinimalDexTest::testReserveETH()
+  [13513] MinimalDexTest::testReserveETH()
     ├─ [2520] LPool::getETHPoolAmount() [staticcall]
     │   └─ ← [Return] 1000000000000000 [1e15]
-    ├─ [0] console::log("reserveETH: ", 1000000000000000 [1e15], 1000000000000000 [1e15]) [staticcall]
-    │   └─ ← [Stop]
     ├─ [0] VM::assertEq(1000000000000000 [1e15], 1000000000000000 [1e15], "Reserve ETH should be 0.001") [staticcall]
     │   └─ ← [Return]
     └─ ← [Stop]
 
-[PASS] testReserveUSDC() (gas: 13417)
+[PASS] testReserveUSDC() (gas: 13405)
 Traces:
-  [13417] MinimalDexTest::testReserveUSDC()
+  [13405] MinimalDexTest::testReserveUSDC()
     ├─ [2478] LPool::getUSDCPoolAmount() [staticcall]
     │   └─ ← [Return] 1000000 [1e6]
     ├─ [0] VM::assertEq(1000000 [1e6], 1000000 [1e6], "Reserve USDC should be 1") [staticcall]
     │   └─ ← [Return]
     └─ ← [Stop]
 
-[PASS] testSwapETH2USDCExpectRevertOnReserveETHExceed() (gas: 153901)
+[PASS] testSwapETH2USDCExpectRevertOnReserveETHExceed() (gas: 139999)
 Traces:
-  [153901] MinimalDexTest::testSwapETH2USDCExpectRevertOnReserveETHExceed()
+  [139999] MinimalDexTest::testSwapETH2USDCExpectRevertOnReserveETHExceed()
     ├─ [5934] MinimalDex::getETHContract() [staticcall]
     │   ├─ [381] AMM::getETHContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
     │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
-    ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000000000000 [1e15])
-    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000000000000 [1e15])
+    ├─ [60543] TestSetup::mintApproveToken(MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD], MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 1000000000000000 [1e15])
+    │   ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000000000000 [1e15])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000000000000 [1e15])
+    │   │   └─ ← [Stop]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: TestSetup: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
     │   └─ ← [Stop]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
-    │   └─ ← [Return]
     ├─ [1564] MinimalDex::getUSDCContract() [staticcall]
     │   ├─ [468] AMM::getUSDCContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
     │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::stopPrank()
-    │   └─ ← [Return]
+    ├─ [32877] TestSetup::approveDexToPullFrom(MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41], LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316])
+    │   ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
+    │   │   └─ ← [Return]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   ├─ [0] VM::stopPrank()
+    │   │   └─ ← [Return]
+    │   └─ ← [Stop]
     ├─ [0] VM::expectRevert(custom error 0xf4844814)
     │   └─ ← [Return]
     ├─ [20424] MinimalDex::swap(10000000000000000 [1e16], 0, "ETH", "USDC")
@@ -77,30 +65,34 @@ Traces:
     │   └─ ← [Revert] INSUFFICIENT_BALANCE(1000000000000000 [1e15], 10000000000000000 [1e16])
     └─ ← [Stop]
 
-[PASS] testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed() (gas: 153158)
+[PASS] testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed() (gas: 139256)
 Traces:
-  [153158] MinimalDexTest::testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed()
+  [139256] MinimalDexTest::testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed()
     ├─ [6064] MinimalDex::getUSDCContract() [staticcall]
     │   ├─ [468] AMM::getUSDCContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
     │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
-    ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000 [1e6])
-    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000 [1e6])
+    ├─ [60543] TestSetup::mintApproveToken(MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41], MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 1000000 [1e6])
+    │   ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000 [1e6])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000 [1e6])
+    │   │   └─ ← [Stop]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: TestSetup: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
     │   └─ ← [Stop]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
-    │   └─ ← [Return]
     ├─ [1434] MinimalDex::getETHContract() [staticcall]
     │   ├─ [381] AMM::getETHContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
     │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::stopPrank()
-    │   └─ ← [Return]
+    ├─ [32877] TestSetup::approveDexToPullFrom(MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD], LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316])
+    │   ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
+    │   │   └─ ← [Return]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   ├─ [0] VM::stopPrank()
+    │   │   └─ ← [Return]
+    │   └─ ← [Stop]
     ├─ [0] VM::expectRevert(custom error 0xf4844814)
     │   └─ ← [Return]
     ├─ [19703] MinimalDex::swap(100000000 [1e8], 0, "USDC", "ETH")
@@ -117,70 +109,78 @@ Traces:
     │   └─ ← [Revert] INSUFFICIENT_BALANCE(1000000 [1e6], 100000000 [1e8])
     └─ ← [Stop]
 
-[PASS] testUserHasInsufficeintETHExpectRevert() (gas: 155651)
+[PASS] testUserHasInsufficientETHExpectRevert() (gas: 140425)
 Traces:
-  [155651] MinimalDexTest::testUserHasInsufficeintETHExpectRevert()
+  [140425] MinimalDexTest::testUserHasInsufficientETHExpectRevert()
     ├─ [5934] MinimalDex::getETHContract() [staticcall]
     │   ├─ [381] AMM::getETHContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
     │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
-    ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 999999999800000 [9.999e14])
-    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 999999999800000 [9.999e14])
+    ├─ [60543] TestSetup::mintApproveToken(MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD], MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 999999999700000 [9.999e14])
+    │   ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 999999999700000 [9.999e14])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 999999999700000 [9.999e14])
+    │   │   └─ ← [Stop]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: TestSetup: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
     │   └─ ← [Stop]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
-    │   └─ ← [Return]
     ├─ [1564] MinimalDex::getUSDCContract() [staticcall]
     │   ├─ [468] AMM::getUSDCContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
     │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::stopPrank()
-    │   └─ ← [Return]
+    ├─ [32877] TestSetup::approveDexToPullFrom(MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41], LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316])
+    │   ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
+    │   │   └─ ← [Return]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   ├─ [0] VM::stopPrank()
+    │   │   └─ ← [Return]
+    │   └─ ← [Stop]
     ├─ [0] VM::expectRevert(custom error 0xf4844814)
     │   └─ ← [Return]
-    ├─ [21703] MinimalDex::swap(999999999900000 [9.999e14], 0, "USDC", "ETH")
-    │   ├─ [3747] AMM::getTokenAddress("USDC") [staticcall]
-    │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
+    ├─ [20424] MinimalDex::swap(999999999800000 [9.999e14], 0, "ETH", "USDC")
     │   ├─ [3747] AMM::getTokenAddress("ETH") [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
+    │   ├─ [3747] AMM::getTokenAddress("USDC") [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
     │   ├─ [2537] AMM::getLPoolAddress() [staticcall]
     │   │   └─ ← [Return] LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768]
-    │   ├─ [2850] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
-    │   │   └─ ← [Return] 0
     │   ├─ [850] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
-    │   │   └─ ← [Return] 0
-    │   └─ ← [Revert] INSUFFICIENT_BALANCE(0, 999999999900000 [9.999e14])
+    │   │   └─ ← [Return] 999999999700000 [9.999e14]
+    │   ├─ [850] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
+    │   │   └─ ← [Return] 999999999700000 [9.999e14]
+    │   └─ ← [Revert] INSUFFICIENT_BALANCE(999999999700000 [9.999e14], 999999999800000 [9.999e14])
     └─ ← [Stop]
 
-[PASS] testUserHasInsufficeintUSDCExpectRevert() (gas: 153651)
+[PASS] testUserHasInsufficientUSDCExpectRevert() (gas: 139749)
 Traces:
-  [153651] MinimalDexTest::testUserHasInsufficeintUSDCExpectRevert()
+  [139749] MinimalDexTest::testUserHasInsufficientUSDCExpectRevert()
     ├─ [6064] MinimalDex::getUSDCContract() [staticcall]
     │   ├─ [468] AMM::getUSDCContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
     │   └─ ← [Return] MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41]
-    ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 800000 [8e5])
-    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 800000 [8e5])
+    ├─ [60543] TestSetup::mintApproveToken(MockERC20: [0xFaB4821C225B584e55A9569CA4216d291D00bF41], MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 800000 [8e5])
+    │   ├─ [30191] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 800000 [8e5])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 800000 [8e5])
+    │   │   └─ ← [Stop]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: TestSetup: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
     │   └─ ← [Stop]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
-    │   └─ ← [Return]
     ├─ [1434] MinimalDex::getETHContract() [staticcall]
     │   ├─ [381] AMM::getETHContract() [staticcall]
     │   │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
     │   └─ ← [Return] MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD]
-    ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
-    │   └─ ← [Return] true
-    ├─ [0] VM::stopPrank()
-    │   └─ ← [Return]
+    ├─ [32877] TestSetup::approveDexToPullFrom(MockERC20: [0xB0f0b95Fbc8763E840c6eae8Fe21f6C6BcaCecCD], LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316])
+    │   ├─ [0] VM::startPrank(LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768])
+    │   │   └─ ← [Return]
+    │   ├─ [25296] MockERC20::approve(MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: LPool: [0x6d2eed85750d316088343D6d5e91ca59eb052768], spender: MinimalDex: [0x34A1D3fff3958843C43aD80F30b94c510645C316], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   ├─ [0] VM::stopPrank()
+    │   │   └─ ← [Return]
+    │   └─ ← [Stop]
     ├─ [0] VM::expectRevert(custom error 0xf4844814)
     │   └─ ← [Return]
     ├─ [19703] MinimalDex::swap(900000 [9e5], 0, "USDC", "ETH")
@@ -197,6 +197,6 @@ Traces:
     │   └─ ← [Revert] INSUFFICIENT_BALANCE(800000 [8e5], 900000 [9e5])
     └─ ← [Stop]
 
-Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 13.05ms (4.50ms CPU time)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 4.53ms (3.63ms CPU time)
 
-Ran 1 test suite in 2.06s (13.05ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)
+Ran 1 test suite in 448.48ms (4.53ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)
