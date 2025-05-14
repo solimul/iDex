@@ -61,6 +61,9 @@ contract AMM {
     function getETHContract () external view returns (address) {
         return i_eth;
     }
+ 
+
+
     function getAMMAddress () external view returns (address) {
         return address(this);
     }
@@ -76,18 +79,18 @@ contract AMM {
 
 
 
-    modifier requireCheck (
-        uint256 amountIn,
-        address tokenIn,
-        address tokenOut
-        ) {
-         if (amountIn <=0 ) revert INSUFFICIENT_SWAP_AMOUNT();
-        if (tokenIn == tokenOut) revert NEEDS_DIFFERENT_TOKEN();
-        bool validToken = (tokenIn == i_usdc && tokenOut == i_eth)
-                        || (tokenIn == i_eth && tokenOut == i_usdc); 
-        if (!validToken) revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
-        _;
-    }
+    // modifier requireCheck (
+    //     uint256 amountIn,
+    //     address tokenIn,
+    //     address tokenOut
+    //     ) {
+    //     if (amountIn <=0 ) revert INSUFFICIENT_SWAP_AMOUNT();
+    //     if (tokenIn == tokenOut) revert NEEDS_DIFFERENT_TOKEN();
+    //     bool validToken = (tokenIn == i_usdc && tokenOut == i_eth)
+    //                     || (tokenIn == i_eth && tokenOut == i_usdc); 
+    //     if (!validToken) revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
+    //     _;
+    // }
 
     function enforceInvariant(address tokenOut, uint256 amountOut) public view {
         console.log("Invariant: ", invariant, lPool.getInvariant(), invariant * 999 / 1000);

@@ -39,6 +39,9 @@ contract TestSetup is Script {
     ) external {
         if (block.chainid == ANVIL_CHAINID) {
             MockERC20(token).mint(to, amount);
+            // The approval must come from the `to` address (i.e., the token holder)
+            vm.prank(to);
+            // Approve the spender to pull tokens from the `to` address
             MockERC20(token).approve(spender, type(uint256).max);
         }
     }

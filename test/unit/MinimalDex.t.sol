@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Test} from "../../lib/forge-std/src/Test.sol";
+import {Test, console} from "../../lib/forge-std/src/Test.sol";
 import {MinimalDex} from "../../src/MinimalDex.sol";
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {LPool} from "../../src/LPool.sol";
@@ -90,14 +90,14 @@ contract MinimalDexTest is Test {
         // No minting — user must already hold USDC.
         // If user's balance is insufficient, the swap will revert.
 
-        testSetup.mintApproveToken(dex.getUSDCContract(), address(this), address(dex), _reserveUSDC - 200_000);
+        testSetup.mintApproveToken(dex.getUSDCContract(), address(this), address(dex), _reserveUSDC - 200000);
 
         // Approve the DEX to pull ETH from the pool (LPool), since it will send ETH to the user during the swap.
         testSetup.approveDexToPullFrom(dex.getETHContract(), address(lpool), address(dex));
 
         // Try to swap slightly more USDC than user owns — should revert due to insufficient user balance.
         vm.expectRevert();
-        dex.swap(_reserveUSDC - 100_000, 0, "USDC", "ETH");
+        dex.swap(_reserveUSDC - 100000, 0, "USDC", "ETH");
     }
 
 
@@ -120,5 +120,67 @@ contract MinimalDexTest is Test {
         // Now attempt a swap with more ETH than the user actually owns — this should revert.
         vm.expectRevert();
         dex.swap(_reserveETH - 200000, 0, "ETH", "USDC");
+    }
+
+    function testGetTokenAddress () public view {
+        // Check that the token address for USDC is correct
+        assertEq((AMM(dex.getAMM ())).getTokenAddress("USDC"), dex.getUSDCContract(), "USDC address should match");
+        // Check that the token address for ETH is correct
+        assertEq((AMM(dex.getAMM ())).getTokenAddress("ETH"), dex.getETHContract(), "ETH address should match");
+    }
+
+    function testCalculateUSDCOutAmountForETH () public view {
+        uint256 amountIn = 100000; // 1 USDC
+        uint256 amountOut = 0;
+        address tokenIn = dex.getUSDCContract();
+        address tokenOut = dex.getETHContract();
+        uint256 currentUSDCReserve = lpool.getUSDCPoolAmount();
+        uint256 currentETHReserve = lpool.getETHPoolAmount();
+        // Calculate the expected amount out using the formula
+        uint256 expectedAmountOut = (amountIn * currentETHReserve) / (currentUSDCReserve + amountIn);
+        // Call the function to calculate the amount out
+        amountOut = (AMM (dex.getAMM ())).calculateOutAmount(amountIn, tokenIn, tokenOut);
+
+        assertEq(amountOut, expectedAmountOut, "Calculated amount out should match expected amount out");
+    }
+
+    function testUpdateLPoolOnSwapETH2USDC () public {
+
+             
+        // ANVIL:
+        // Mint ETH test contract to simulate user balance
+        // This is necessary because on Anvil (a local test network), token balances start at zero,
+        // and mock tokens like WETH must be manually minted for testing purposes.
+        // and then Approve the DEX to pull ETH from this minted tokens for the swap.
+
+        // NOTE: for SEPOLIA / MAINNET
+        // Minting is not needed — tokens (e.g., WETH) are real assets deployed on-chain.
+        // The user (i.e., the EOA running the test) must already hold ETH in their wallet.
+        // If the wallet lacks sufficient ETH, the swap will revert due to insufficient balance.    
+        testSetup.mintApproveToken(dex.getETHContract(), address(this), address(dex), _reserveETH );
+
+        // Approve the DEX to pull USDC from the lpool for the swap.
+        testSetup.approveDexToPullFrom(dex.getUSDCContract(), address(lpool), address(dex));
+
+        uint256 ethAmountIn = 10000; 
+        uint256 currentUSDCReserve = lpool.getUSDCPoolAmount();
+        uint256 currentETHReserve = lpool.getETHPoolAmount(); 
+
+        uint256 expectedAmountOut = (ethAmountIn * currentUSDCReserve) / (currentETHReserve + ethAmountIn);
+
+        uint256 updatedETHReserve = currentETHReserve + ethAmountIn;
+        uint256 updatedUSDCReserve = currentUSDCReserve - expectedAmountOut;   
+
+        console.log ("my balance: ", IERC20(dex.getETHContract()).balanceOf(address(this)));
+        console.log ("lpool balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
+        console.log ("lpool USDC balance: ", IERC20(dex.getUSDCContract()).balanceOf(address(lpool)));
+        console.log ("lpool ETH balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
+        // swap ETH for USDC
+        dex.swap(ethAmountIn, 0, "ETH", "USDC");
+
+        // Check that the reserves have been updated correctly
+        assertEq(lpool.getETHPoolAmount(), updatedETHReserve, "ETH reserve should be updated correctly");
+        assertEq(lpool.getUSDCPoolAmount(), updatedUSDCReserve, "USDC reserve should be updated correctly");        
+
     }
 }
