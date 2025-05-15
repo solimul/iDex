@@ -80,6 +80,6 @@ Test gas usage:
 
 forge test --gas-report
 
-🏗 Deployment
+Deployment 
 Deploy to Sepolia:
 forge script script/DeployMinimalDex.s.sol --rpc-url $SEPOLIA_RPC --private-key $PRIVATE_KEY --broadcast --verify
