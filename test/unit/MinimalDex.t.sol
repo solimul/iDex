@@ -249,4 +249,44 @@ contract MinimalDexTest is Test {
         vm.expectRevert();
         dex.swap(_reserveETH-1000, 0, "ETH", "ETH");
     }
+
+    function testUSDC2ETHSwapForCorrectBalanceUpdate () public {
+
+        testSetup.mintApproveToken(dex.getUSDCContract(), address(this), address(dex), _reserveUSDC);
+
+        testSetup.approveDexToPullFrom(dex.getETHContract(), address(lpool), address(dex));
+
+        uint256 currentUSDC = IERC20(dex.getUSDCContract()).balanceOf(address(lpool));
+        uint256 currentETH = IERC20(dex.getETHContract()).balanceOf(address(lpool));
+        uint256 usdcAmountIn = currentUSDC / 10; // 10% of the current USDC balance 
+
+        uint256 expectedAmountOut = (usdcAmountIn * lpool.getETHPoolAmount()) / (lpool.getUSDCPoolAmount() + usdcAmountIn);        
+  
+
+        dex.swap(usdcAmountIn, 0, "USDC", "ETH");
+
+        assertEq(IERC20(dex.getUSDCContract()).balanceOf(address(lpool)), currentUSDC + usdcAmountIn, "User USDC balance should be updated correctly");
+        assertEq(IERC20(dex.getETHContract()).balanceOf(address(lpool)), currentETH - expectedAmountOut, "User ETH balance should be updated correctly");
+
+    }
+
+    function testETH2USDCSwapForCorrectBalanceUpdate () public {
+
+        testSetup.mintApproveToken(dex.getETHContract(), address(this), address(dex), _reserveETH);
+
+        testSetup.approveDexToPullFrom(dex.getUSDCContract(), address(lpool), address(dex));
+
+        uint256 currentUSDC = IERC20(dex.getUSDCContract()).balanceOf(address(lpool));
+        uint256 currentETH = IERC20(dex.getETHContract()).balanceOf(address(lpool));
+        uint256 ethAmountIn = currentETH / 10; // 10% of the current USDC balance 
+
+        uint256 expectedAmountOut = (ethAmountIn * lpool.getUSDCPoolAmount()) / (lpool.getETHPoolAmount() + ethAmountIn);        
+  
+
+        dex.swap(ethAmountIn, 0, "ETH", "USDC");
+
+        assertEq(IERC20(dex.getUSDCContract()).balanceOf(address(lpool)), currentUSDC - expectedAmountOut, "User USDC balance should be updated correctly");
+        assertEq(IERC20(dex.getETHContract()).balanceOf(address(lpool)), currentETH + ethAmountIn, "User ETH balance should be updated correctly");
+
+    }
 }
