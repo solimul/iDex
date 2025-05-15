@@ -9,9 +9,10 @@ import {console} from "../lib/forge-std/src/console.sol";
 
 contract MinimalDex {
 
-    error TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
+    error ONLY_ETH_USDC_SWAPS_ARE_ALLOWED();
     error INSUFFICIENT_BALANCE (uint256 balance, uint256 amountIn);
     error INSUFFICIENT_LIQUIDITY(uint256 poolBalance, uint256 requestedOut);
+    error UNABLE_TO_SWAP_WITH_SAME_PAIRS_OF_TOKENS ();
 
     event Swapped (
         uint256 amountIn,
@@ -44,13 +45,15 @@ contract MinimalDex {
     }
 
     modifier checkStrings (string memory tokenInString, string memory tokenOutString) {
+        if (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked(tokenOutString))) 
+            revert UNABLE_TO_SWAP_WITH_SAME_PAIRS_OF_TOKENS ();
 
-       bool validToken = (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("USDC")) && 
+        bool validToken = (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("USDC")) && 
                         keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("ETH"))) ||
                         (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("ETH")) && 
                         keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("USDC")));
-        if (!validToken)
-            revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
+        if (!validToken) 
+            revert ONLY_ETH_USDC_SWAPS_ARE_ALLOWED ();
         _;
     }
 
@@ -94,11 +97,14 @@ function checkInsuffientBalance (
 
         checkInsuffientBalance (tokenIn, amountIn, from);
         enforceSlippageRequirement (amountIn, slippagePrecentage, tokenIn, tokenOut);
+        
+        uint256 amountOut = amm.calculateOutAmount (amountIn, tokenIn, tokenOut);
+        amm.checkInsufficientLiquidity (tokenOut, amountOut);
+
         // Transfer the tokens  
         // from the swapper to the contract
         IERC20 (tokenIn).transferFrom (from, to, amountIn);
-        uint256 amountOut = amm.calculateOutAmount (amountIn, tokenIn, tokenOut);
-        amm.checkInsufficientLiquidity (tokenOut, amountOut);
+        
         // Transfer the tokens from the contract to the swapper
         //console.log("to: ", to, IERC20(tokenOut).balanceOf (to));
         IERC20(tokenOut).transferFrom(to, from, amountOut);

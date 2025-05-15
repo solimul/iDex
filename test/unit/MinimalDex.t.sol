@@ -221,4 +221,32 @@ contract MinimalDexTest is Test {
         assertEq(lpool.getUSDCPoolAmount(), updatedUSDCReserve, "USDC reserve should be updated correctly");        
 
     }
+
+    function testUSDC2SOLSWapExpectRevert () public {
+        // ANVIL:
+        // Mint USDC to this test contract to simulate user balance (required since mock balances start at zero).
+        // Then approve the DEX to pull USDC from this user (i.e., this contract).
+
+        // NOTE: for SEPOLIA / MAINNET
+        // Minting is not needed — tokens like USDC are real assets on-chain.
+        // The user must already hold sufficient USDC; otherwise, the swap will revert.
+        testSetup.mintApproveToken(dex.getUSDCContract(), address(this), address(dex), _reserveUSDC);
+
+        // Approve the DEX to pull ETH from the pool (LPool), since it will send ETH to the user during the swap.
+        testSetup.approveDexToPullFrom(dex.getETHContract(), address(lpool), address(dex));
+
+        // Try USDC to get SOL, which is not allowed. we should expect a revert. 
+        vm.expectRevert();
+        dex.swap(_reserveUSDC-1000, 0, "USDC", "SOL");
+    }
+
+    function testETH2ETHSWapExpectRevert () public {
+
+        testSetup.mintApproveToken(dex.getETHContract(), address(this), address(dex), _reserveETH);
+
+        testSetup.approveDexToPullFrom(dex.getUSDCContract(), address(lpool), address(dex));
+
+        vm.expectRevert();
+        dex.swap(_reserveETH-1000, 0, "ETH", "ETH");
+    }
 }
