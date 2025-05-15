@@ -5,7 +5,8 @@ import {Funding} from "./Funding.sol";
 import {NetworkConfig} from "./NetworkConfig.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
+import {console} from "../lib/forge-std/src/console.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /**
  * @title LPool
@@ -45,6 +46,19 @@ contract LPool {
 
     modifier onlyOwner () {
         if (msg.sender != i_owner) revert NOT_OWNER();
+        _;
+    }
+
+    modifier validCoins (address tokenOut) {
+        require(tokenOut == i_usdc || tokenOut == i_eth, "Unsupported tokenOut");
+
+        // Infer tokenIn based on tokenOut
+        address tokenIn = tokenOut == i_usdc ? i_eth : i_usdc;
+
+        uint8 decimalsIn  = IERC20Metadata(tokenIn).decimals();
+        uint8 decimalsOut = IERC20Metadata(tokenOut).decimals();
+        require(decimalsIn == 6 || decimalsIn == 18, "Unsupported decimals");
+        require(decimalsOut == 6 || decimalsOut == 18, "Unsupported decimals");
         _;
     }
 
@@ -103,19 +117,25 @@ contract LPool {
         emit ReservesReset(_reserveETH, _reserveUSDC);
     }
 
-    function updateLPool (
+    function updateLPool(
         address tokenOut,
         uint256 amountIn,
         uint256 amountOut
-    ) external {
-            if (tokenOut == i_usdc) {
-            s_reserveETH = s_reserveETH + amountIn;
-            s_reserveUSDC = s_reserveUSDC - amountOut;
+        ) external validCoins(tokenOut) {
+        // Adjust pool reserves based on direction
+        if (tokenOut == i_usdc) {
+            // ETH → USDC swap
+            s_reserveETH  += amountIn;     // amountIn is in wei (18 decimals)
+            s_reserveUSDC -= amountOut;    // amountOut is in USDC micro-units (6 decimals)
         } else {
-            s_reserveUSDC = s_reserveUSDC + amountOut;
-            s_reserveETH = s_reserveETH - amountIn;
+            // USDC → ETH swap
+            s_reserveUSDC += amountIn;     // amountIn is in USDC micro-units (6 decimals)
+            s_reserveETH  -= amountOut;    // amountOut is in wei (18 decimals)
         }
+        emit ReserveETHUpdated(s_reserveETH);
+        emit ReserveUSDCUpdated(s_reserveUSDC);
     }
+
 
 
 

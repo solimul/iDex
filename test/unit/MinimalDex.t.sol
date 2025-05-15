@@ -15,6 +15,9 @@ contract MinimalDexTest is Test {
     uint256 private constant _exceedReserveUSDCAmount = 1 * 10 ** 8;
     uint256 private constant _exceedReserveETHAmount = 1 * 10 ** 16;
 
+    error ETH_RESERVE_NOT_UPDATED ();
+    error USDC_RESERVE_NOT_UPDATED ();
+
     LPool private lpool;
     MinimalDex private dex;
     TestSetup private testSetup;
@@ -171,12 +174,47 @@ contract MinimalDexTest is Test {
         uint256 updatedETHReserve = currentETHReserve + ethAmountIn;
         uint256 updatedUSDCReserve = currentUSDCReserve - expectedAmountOut;   
 
-        console.log ("my balance: ", IERC20(dex.getETHContract()).balanceOf(address(this)));
-        console.log ("lpool balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
-        console.log ("lpool USDC balance: ", IERC20(dex.getUSDCContract()).balanceOf(address(lpool)));
-        console.log ("lpool ETH balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
+        // console.log ("my balance: ", IERC20(dex.getETHContract()).balanceOf(address(this)));
+        // console.log ("lpool balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
+        // console.log ("lpool USDC balance: ", IERC20(dex.getUSDCContract()).balanceOf(address(lpool)));
+        // console.log ("lpool ETH balance: ", IERC20(dex.getETHContract()).balanceOf(address(lpool)));
         // swap ETH for USDC
         dex.swap(ethAmountIn, 0, "ETH", "USDC");
+
+        // Check that the reserves have been updated correctly
+        assert(lpool.getETHPoolAmount() == updatedETHReserve);
+        assert(lpool.getUSDCPoolAmount() == updatedUSDCReserve);
+
+    }
+
+    function testUpdateLPoolOnSwapUSDC2ETH () public {
+
+             
+        // ANVIL:
+        // Mint USDC test contract to simulate user balance
+        // This is necessary because on Anvil (a local test network), token balances start at zero,
+        // and mock tokens like WETH must be manually minted for testing purposes.
+        // and then Approve the DEX to pull ETH from this minted tokens for the swap.
+
+        // NOTE: for SEPOLIA / MAINNET
+        // Minting is not needed — tokens (e.g., USDC) are real assets deployed on-chain.
+        // The user (i.e., the EOA running the test) must already hold ETH in their wallet.
+        // If the wallet lacks sufficient ETH, the swap will revert due to insufficient balance.    
+        testSetup.mintApproveToken(dex.getUSDCContract(), address(this), address(dex), _reserveUSDC );
+
+        // Approve the DEX to pull USDC from the lpool for the swap.
+        testSetup.approveDexToPullFrom(dex.getETHContract(), address(lpool), address(dex));
+
+        uint256 usdcAmountIn = 10000; 
+        uint256 currentUSDCReserve = lpool.getUSDCPoolAmount();
+        uint256 currentETHReserve = lpool.getETHPoolAmount(); 
+
+        uint256 expectedAmountOut = (usdcAmountIn * currentETHReserve) / (currentUSDCReserve + usdcAmountIn);
+
+        uint256 updatedUSDCReserve = currentUSDCReserve + usdcAmountIn;
+        uint256 updatedETHReserve = currentETHReserve - expectedAmountOut;   
+
+        dex.swap(usdcAmountIn, 0, "USDC", "ETH");
 
         // Check that the reserves have been updated correctly
         assertEq(lpool.getETHPoolAmount(), updatedETHReserve, "ETH reserve should be updated correctly");

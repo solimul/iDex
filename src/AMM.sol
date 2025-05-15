@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {LPool} from "./LPool.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {console} from "../lib/forge-std/src/console.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 
 /**
@@ -20,6 +21,9 @@ contract AMM {
     error INSUFFICIENT_BALANCE (uint256 balance, uint256 amountIn);
     error INSUFFICIENT_LIQUIDITY(uint256 poolBalance, uint256 requestedOut);
     error INVARIANT_BROKEN(uint256 poolBalance, uint256 requestedOut);
+    error UNSUPPORTED_OUT_TOKEN();
+    error UNSUPPORTED_IN_TOKEN_DECIMALS(uint8 decimalsIn);
+    error UNSUPPORTED_OUT_TOKEN_DECIMALS(uint8 decimalsOut);
 
     event Swapped (
         uint256 amountIn,
@@ -49,6 +53,19 @@ contract AMM {
         invariant = USDC_RESERVE * ETH_RESERVE;
         tokenMap["USDC"] = i_usdc;
         tokenMap["ETH"] = i_eth;
+    }
+
+    modifier validCoins (address tokenOut){
+        require(tokenOut == i_usdc || tokenOut == i_eth, UNSUPPORTED_OUT_TOKEN ());
+
+        // Infer tokenIn based on tokenOut
+        address tokenIn = tokenOut == i_usdc ? i_eth : i_usdc;
+
+        uint8 decimalsIn  = IERC20Metadata(tokenIn).decimals();
+        uint8 decimalsOut = IERC20Metadata(tokenOut).decimals();
+        require(decimalsIn == 6 || decimalsIn == 18, UNSUPPORTED_IN_TOKEN_DECIMALS (decimalsIn));
+        require(decimalsOut == 6 || decimalsOut == 18, UNSUPPORTED_OUT_TOKEN_DECIMALS (decimalsOut));
+        _;
     }
 
 
@@ -99,18 +116,25 @@ contract AMM {
         }
     }
 
-    function calculateOutAmount (
+    function calculateOutAmount(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
-    ) public view returns (uint256) {
-        uint256 amountOut;
+    ) public view validCoins(tokenOut) returns (uint256) {
+        uint256 reserveIn;
+        uint256 reserveOut;
+
         if (tokenIn == i_usdc && tokenOut == i_eth) {
-            amountOut = (amountIn * lPool.getETHPoolAmount()) / (lPool.getUSDCPoolAmount() + amountIn);
+            reserveIn = lPool.getUSDCPoolAmount();
+            reserveOut = lPool.getETHPoolAmount();
         } else if (tokenIn == i_eth && tokenOut == i_usdc) {
-            amountOut = (amountIn * lPool.getUSDCPoolAmount()) / (lPool.getETHPoolAmount() + amountIn);
+            reserveIn = lPool.getETHPoolAmount();
+            reserveOut = lPool.getUSDCPoolAmount();
+        } else {
+            revert("Unsupported token pair");
         }
-        return amountOut;
+
+        return (amountIn * reserveOut) / (reserveIn + amountIn);
     }
 
     function checkInsufficientLiquidity (
