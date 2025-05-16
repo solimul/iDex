@@ -92,22 +92,7 @@ contract AMM {
         }
         return tokenAddress;
     }
-    
 
-
-
-    // modifier requireCheck (
-    //     uint256 amountIn,
-    //     address tokenIn,
-    //     address tokenOut
-    //     ) {
-    //     if (amountIn <=0 ) revert INSUFFICIENT_SWAP_AMOUNT();
-    //     if (tokenIn == tokenOut) revert NEEDS_DIFFERENT_TOKEN();
-    //     bool validToken = (tokenIn == i_usdc && tokenOut == i_eth)
-    //                     || (tokenIn == i_eth && tokenOut == i_usdc); 
-    //     if (!validToken) revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
-    //     _;
-    // }
 
     function enforceInvariant(address tokenOut, uint256 amountOut) public view {
         console.log("Invariant: ", invariant, lPool.getInvariant(), invariant * 999 / 1000);
@@ -144,56 +129,6 @@ contract AMM {
         if (IERC20(tokenOut).balanceOf(address (lPool)) < amountOut) 
             revert INSUFFICIENT_LIQUIDITY(IERC20(tokenOut).balanceOf(address (lPool)), amountOut);
     }
-
-    
-
-
-    // function swap  (
-    //     uint256 amountIn,
-    //     uint256 slippagePrecentage,
-    //     address tokenIn,
-    //     address tokenOut
-    // ) private requireCheck (amountIn, tokenIn, tokenOut) {
-    //     address swapper = address (lPool);
-    //     console.log("Swapper: ", swapper, lPool.getUSDCAmount(), lPool.getETHAmount());
-
-    //     checkInsuffientBalance (tokenIn, amountIn, swapper);
-    //     enforceSlippageRequirement (amountIn, slippagePrecentage, tokenIn, tokenOut);
-    //     // Transfer the tokens  
-    //     // from the swapper to the contract
-    //     //IERC20 (tokenIn).transferFrom (swapper, address (this), amountIn);
-    //     lPool.transferToken (tokenIn, amountIn);
-    //     uint256 amountOut = calculateOutAmount (amountIn, tokenIn, tokenOut);
-    //     checkInsufficientLiquidity (tokenOut, amountOut);
-    //     // Transfer the tokens from the contract to the swapper
-    //     IERC20(tokenOut).transfer(swapper, amountOut);
-    //     lPool.updateLPool(tokenOut, amountIn, amountOut);
-    //     enforceInvariant (tokenOut, amountOut);
-    //     emit Swapped (amountIn, tokenIn, amountOut, tokenOut);
-    // }
-
-    // function swapTokens (
-    //     uint256 amountIn,
-    //     uint256 slippagePrecentage,
-    //     string memory tokenInString,
-    //     string memory tokenOutString
-    // ) public  {
-    //     bool validToken = (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("USDC")) && 
-    //                     keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("ETH"))) ||
-    //                     (keccak256(abi.encodePacked(tokenInString)) == keccak256(abi.encodePacked("ETH")) && 
-    //                     keccak256(abi.encodePacked(tokenOutString)) == keccak256(abi.encodePacked("USDC")));
-    //     if (!validToken)
-    //         revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
-        
-
-    //     address tokenIn = tokenMap[tokenInString];
-    //     address tokenOut = tokenMap[tokenOutString];
-
-    //     if (tokenIn == address(0) || tokenOut == address(0)) {
-    //         revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
-    //     }
-    //     swap (amountIn, slippagePrecentage, tokenIn, tokenOut);
-    // }
 
     function fundContract (
         address sender

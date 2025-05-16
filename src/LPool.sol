@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.29;
-import {Funding} from "./Funding.sol";
 import {NetworkConfig} from "./NetworkConfig.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -98,25 +97,6 @@ contract LPool {
         return s_reserveETH * s_reserveUSDC;
     }
 
-    
-
-
-    function updateReserveETH (uint256 _reserveETH) external {
-        s_reserveETH = _reserveETH;
-        emit ReserveETHUpdated(_reserveETH);
-    }
-
-    function updateReserveUSDC (uint256 _reserveUSDC) external  {
-        s_reserveUSDC = _reserveUSDC;
-        emit ReserveUSDCUpdated(_reserveUSDC);
-    }
-
-    function resetReserves (uint256 _reserveETH, uint256 _reserveUSDC) external onlyOwner {
-        s_reserveETH = _reserveETH;
-        s_reserveUSDC = _reserveUSDC;
-        emit ReservesReset(_reserveETH, _reserveUSDC);
-    }
-
     function updateLPool(
         address tokenOut,
         uint256 amountIn,
@@ -153,16 +133,7 @@ contract LPool {
 
             require(usdcSuccess, "USDC funding failed");
             require(ethSuccess, "ETH funding failed");
-        }
-
-        
+        }  
     }
-
-    function intakeToken (address token, address from, uint256 amount) external {
-        IERC20(token).transferFrom (from, address (this), amount); // or transferFrom if logic changes
-    }
-    
-
-  
 
 }

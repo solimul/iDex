@@ -289,4 +289,5 @@ contract MinimalDexTest is Test {
         assertEq(IERC20(dex.getETHContract()).balanceOf(address(lpool)), currentETH + ethAmountIn, "User ETH balance should be updated correctly");
 
     }
+
 }
