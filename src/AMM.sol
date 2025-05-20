@@ -93,6 +93,16 @@ contract AMM {
         return tokenAddress;
     }
 
+    function getTokenString (address tokenAddress) public view returns (string memory) {
+        if (tokenAddress == i_usdc) {
+            return "USDC";
+        } else if (tokenAddress == i_eth) {
+            return "ETH";
+        } else {
+            revert TOKENS_NEED_TO_BE_EITHER_USDC_OR_ETH();
+        }
+    }
+
 
     function enforceInvariant(address tokenOut, uint256 amountOut) public view {
         console.log("Invariant: ", invariant, lPool.getInvariant(), invariant * 999 / 1000);

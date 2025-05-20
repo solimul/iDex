@@ -13,6 +13,7 @@ contract MinimalDex {
     error INSUFFICIENT_BALANCE (uint256 balance, uint256 amountIn);
     error INSUFFICIENT_LIQUIDITY(uint256 poolBalance, uint256 requestedOut);
     error UNABLE_TO_SWAP_WITH_SAME_PAIRS_OF_TOKENS ();
+    error TRANSFER_FAILED (string token, address from, address to, uint256 amount);
 
     event Swapped (
         uint256 amountIn,
@@ -82,6 +83,17 @@ function checkInsuffientBalance (
         }
     }
 
+    function safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount)
+        );
+
+        require(
+            success && (data.length == 0 || abi.decode(data, (bool))),
+            TRANSFER_FAILED ("", from, to, amount));
+    }
+
+
     function swap  ( 
         uint256 amountIn,
         uint256 slippagePrecentage,
@@ -100,17 +112,19 @@ function checkInsuffientBalance (
         
         uint256 amountOut = amm.calculateOutAmount (amountIn, tokenIn, tokenOut);
         amm.checkInsufficientLiquidity (tokenOut, amountOut);
+         (LPool (amm.getLPoolAddress ())).updateLPool(tokenOut, amountIn, amountOut);
+        amm.enforceInvariant(tokenOut, amountOut);
 
         // Transfer the tokens  
         // from the swapper to the contract
-        IERC20 (tokenIn).transferFrom (from, to, amountIn);
-        
+        //IERC20 (tokenIn).transferFrom (from, to, amountIn);
+        safeTransferFrom(tokenIn, from, to, amountIn);
+
         // Transfer the tokens from the contract to the swapper
         //console.log("to: ", to, IERC20(tokenOut).balanceOf (to));
-        IERC20(tokenOut).transferFrom(to, from, amountOut);
-
-        (LPool (amm.getLPoolAddress ())).updateLPool(tokenOut, amountIn, amountOut);
-        amm.enforceInvariant(tokenOut, amountOut);
+        //IERC20(tokenOut).transferFrom(to, from, amountOut);
+        safeTransferFrom(tokenOut, to, from, amountOut);
+       
         emit Swapped (amountIn, tokenIn, amountOut, tokenOut);
     }
 
@@ -127,6 +141,10 @@ function checkInsuffientBalance (
 
     function getLPoolAddress () external view returns (address) {
         return amm.getLPoolAddress();
+    }
+
+    function getTokenAddress2String (address token) external view returns (string memory) {
+        return amm.getTokenString (token);
     }
 
     
