@@ -1,18 +1,53 @@
-Compiling 5 files with Solc 0.8.29
-Solc 0.8.29 finished in 963.03ms
+Compiling 1 files with Solc 0.8.29
+Solc 0.8.29 finished in 923.51ms
 Compiler run successful!
 
-Ran 10 tests for test/unit/MinimalDex.t.sol:MinimalDexTest
-[PASS] testCalculateUSDCOutAmountForETH() (gas: 43919)
-[PASS] testGetTokenAddress() (gas: 29875)
-[PASS] testReserveETH() (gas: 13535)
-[PASS] testReserveUSDC() (gas: 13405)
-[PASS] testSwapETH2USDCExpectRevertOnReserveETHExceed() (gas: 140554)
-[PASS] testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed() (gas: 139789)
-[PASS] testUpdateLPoolOnSwapETH2USDC() (gas: 212894)
-[PASS] testUpdateLPoolOnSwapUSDC2ETH() (gas: 247820)
-[PASS] testUserHasInsufficientETHExpectRevert() (gas: 140958)
-[PASS] testUserHasInsufficientUSDCExpectRevert() (gas: 140282)
-Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 5.81ms (8.03ms CPU time)
+Ran 1 test for test/unit/MinimalDex.t.sol:MinimalDexTest
+[PASS] testReentrancyAttack() (gas: 1730213)
+Logs:
+  Attacking for ....  ETH USDC 100000000000000
+  remaining balance:  ETH 1000000000000000
+  Invariant:  1000000000000000000000 1000000100000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 2
+  remaining balance:  ETH 900000000000000
+  Invariant:  1000000000000000000000 1000000800000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 3
+  remaining balance:  ETH 800000000000000
+  Invariant:  1000000000000000000000 1000001600000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 4
+  remaining balance:  ETH 700000000000000
+  Invariant:  1000000000000000000000 1000001800000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 5
+  remaining balance:  ETH 600000000000000
+  Invariant:  1000000000000000000000 1000002000000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 6
+  remaining balance:  ETH 500000000000000
+  Invariant:  1000000000000000000000 1000003200000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 7
+  remaining balance:  ETH 400000000000000
+  Invariant:  1000000000000000000000 1000004600000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 8
+  remaining balance:  ETH 300000000000000
+  Invariant:  1000000000000000000000 1000006200000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 9
+  remaining balance:  ETH 200000000000000
+  Invariant:  1000000000000000000000 1000008000000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 10
+  remaining balance:  ETH 100000000000000
+  Invariant:  1000000000000000000000 1000008000000000000000 999000000000000000000
+  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
+  Reentering for ....  ETH 100000000000000 11
+  remaining balance:  ETH 0
 
-Ran 1 test suite in 17.88ms (5.81ms CPU time): 10 tests passed, 0 failed, 0 skipped (10 total tests)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 11.75ms (8.14ms CPU time)
+
+Ran 1 test suite in 15.57ms (11.75ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

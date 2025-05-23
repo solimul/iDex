@@ -8,6 +8,7 @@ import {LPool} from "../../src/LPool.sol";
 import {AMM} from "../../src/AMM.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
 import {TestSetup} from "../../utils/TestSetup.sol";
+import {MaliciousToken, ReentrancyAttacker} from "../security/bad-contracts/ReentrantAttack.sol";
 
 contract MinimalDexTest is Test {
     uint256 private _reserveUSDC = 1 * 10 ** 6; // 1 USDC
@@ -289,5 +290,28 @@ contract MinimalDexTest is Test {
         assertEq(IERC20(dex.getETHContract()).balanceOf(address(lpool)), currentETH + ethAmountIn, "User ETH balance should be updated correctly");
 
     }
+    
+    function testReentrancyAttack() public {
+
+        // 1. Cast the existing ETH token into MockERC20
+        MockERC20 ethToken = MockERC20(dex.getETHContract());
+
+        // 2. Deploy attacker and register with ETH token
+        ReentrancyAttacker atk = new ReentrancyAttacker(address(dex), 12 );
+        ethToken.enableReentrancyAttack(address(atk));
+
+        // 3. Mint ETH to attacker and approve for swap
+        ethToken.mint(address(atk), _reserveETH);
+        vm.prank(address(atk));
+        ethToken.approve(address(dex), _reserveETH);
+        testSetup.approveDexToPullFrom(dex.getUSDCContract(), address(lpool), address(dex));
+
+
+        // 4. Expect reentrancy to be triggered from transferFrom
+        vm.prank(address(atk));
+        vm.expectRevert();  // Revert expected if DEX is reentrancy-safe
+        atk.attack("ETH", "USDC", 100000000000000);
+    }
+
 
 }

@@ -100,12 +100,15 @@ function checkInsuffientBalance (
         string memory tokenInString,
         string memory tokenOutString
        ) public checkStrings(tokenInString, tokenOutString) {
+
         //amm.swapTokens(amountIn, slippagePrecentage, tokenInString, tokenOutString);
         address tokenIn = amm.getTokenAddress(tokenInString);
         address tokenOut = amm.getTokenAddress(tokenOutString);
 
         address from = msg.sender;
         address to =  amm.getLPoolAddress();
+        
+        console.log ("remaining balance: ",tokenInString, IERC20(tokenIn).balanceOf (from));
 
         checkInsuffientBalance (tokenIn, amountIn, from);
         enforceSlippageRequirement (amountIn, slippagePrecentage, tokenIn, tokenOut);
@@ -123,9 +126,11 @@ function checkInsuffientBalance (
         // Transfer the tokens from the contract to the swapper
         //console.log("to: ", to, IERC20(tokenOut).balanceOf (to));
         //IERC20(tokenOut).transferFrom(to, from, amountOut);
+        console.log("amount out: ", IERC20 (tokenOut).balanceOf (to), amountOut);
         safeTransferFrom(tokenOut, to, from, amountOut);
-       
+
         emit Swapped (amountIn, tokenIn, amountOut, tokenOut);
+
     }
 
     function fundContract (address sender) public {
