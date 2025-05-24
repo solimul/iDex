@@ -1,53 +1,21 @@
-Compiling 1 files with Solc 0.8.29
-Solc 0.8.29 finished in 923.51ms
-Compiler run successful!
+No files changed, compilation skipped
 
-Ran 1 test for test/unit/MinimalDex.t.sol:MinimalDexTest
-[PASS] testReentrancyAttack() (gas: 1730213)
-Logs:
-  Attacking for ....  ETH USDC 100000000000000
-  remaining balance:  ETH 1000000000000000
-  Invariant:  1000000000000000000000 1000000100000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 2
-  remaining balance:  ETH 900000000000000
-  Invariant:  1000000000000000000000 1000000800000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 3
-  remaining balance:  ETH 800000000000000
-  Invariant:  1000000000000000000000 1000001600000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 4
-  remaining balance:  ETH 700000000000000
-  Invariant:  1000000000000000000000 1000001800000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 5
-  remaining balance:  ETH 600000000000000
-  Invariant:  1000000000000000000000 1000002000000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 6
-  remaining balance:  ETH 500000000000000
-  Invariant:  1000000000000000000000 1000003200000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 7
-  remaining balance:  ETH 400000000000000
-  Invariant:  1000000000000000000000 1000004600000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 8
-  remaining balance:  ETH 300000000000000
-  Invariant:  1000000000000000000000 1000006200000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 9
-  remaining balance:  ETH 200000000000000
-  Invariant:  1000000000000000000000 1000008000000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 10
-  remaining balance:  ETH 100000000000000
-  Invariant:  1000000000000000000000 1000008000000000000000 999000000000000000000
-  Reentrancy attack triggered from 0x2e234DAe75C793f67A35089C9d99245E1C58470b to 0x6d2eed85750d316088343D6d5e91ca59eb052768
-  Reentering for ....  ETH 100000000000000 11
-  remaining balance:  ETH 0
+Ran 15 tests for test/unit/MinimalDex.t.sol:MinimalDexTest
+[PASS] testCalculateUSDCOutAmountForETH() (gas: 43758)
+[PASS] testETH2ETHSWapExpectRevert() (gas: 123290)
+[PASS] testETH2USDCSwapForCorrectBalanceUpdate() (gas: 263559)
+[PASS] testGetTokenAddress() (gas: 29788)
+[PASS] testReentrancyAttack() (gas: 1431244)
+[PASS] testReserveETH() (gas: 13469)
+[PASS] testReserveUSDC() (gas: 13449)
+[PASS] testSwapETH2USDCExpectRevertOnReserveETHExceed() (gas: 146948)
+[PASS] testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed() (gas: 146246)
+[PASS] testUSDC2ETHSwapForCorrectBalanceUpdate() (gas: 262831)
+[PASS] testUSDC2SOLSWapExpectRevert() (gas: 125473)
+[PASS] testUpdateLPoolOnSwapETH2USDC() (gas: 222498)
+[PASS] testUpdateLPoolOnSwapUSDC2ETH() (gas: 249258)
+[PASS] testUserHasInsufficientETHExpectRevert() (gas: 147418)
+[PASS] testUserHasInsufficientUSDCExpectRevert() (gas: 146651)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 12.68ms (20.09ms CPU time)
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 11.75ms (8.14ms CPU time)
-
-Ran 1 test suite in 15.57ms (11.75ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+Ran 1 test suite in 16.11ms (12.68ms CPU time): 15 tests passed, 0 failed, 0 skipped (15 total tests)

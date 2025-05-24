@@ -8,7 +8,7 @@ import {LPool} from "../../src/LPool.sol";
 import {AMM} from "../../src/AMM.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
 import {TestSetup} from "../../utils/TestSetup.sol";
-import {MaliciousToken, ReentrancyAttacker} from "../security/bad-contracts/ReentrantAttack.sol";
+import {ReentrancyAttacker} from "../../mocks/security/bad-contracts/ReentrantAttack.sol";
 
 contract MinimalDexTest is Test {
     uint256 private _reserveUSDC = 1 * 10 ** 6; // 1 USDC
@@ -292,26 +292,27 @@ contract MinimalDexTest is Test {
     }
     
     function testReentrancyAttack() public {
-
-        // 1. Cast the existing ETH token into MockERC20
+        // 1. Retrieve the existing ETH token from the deployed DEX and cast it as MockERC20
+        // This allows us to enable the reentrancy feature dynamically
         MockERC20 ethToken = MockERC20(dex.getETHContract());
 
-        // 2. Deploy attacker and register with ETH token
-        ReentrancyAttacker atk = new ReentrancyAttacker(address(dex), 12 );
+        // 2. Deploy the attacker contract with a reentrancy depth of 12
+        // Then enable reentrancy in the token and register the attacker as the callback target
+        ReentrancyAttacker atk = new ReentrancyAttacker(address(dex), 11);
         ethToken.enableReentrancyAttack(address(atk));
 
-        // 3. Mint ETH to attacker and approve for swap
+        // 3. Mint ETH tokens to the attacker contract and approve the DEX to spend them
+        // Also approve the DEX to pull USDC from the LPool (which it needs to complete the swap)
         ethToken.mint(address(atk), _reserveETH);
         vm.prank(address(atk));
         ethToken.approve(address(dex), _reserveETH);
         testSetup.approveDexToPullFrom(dex.getUSDCContract(), address(lpool), address(dex));
 
-
-        // 4. Expect reentrancy to be triggered from transferFrom
+        // 4. Launch the attack
+        // The initial swap will call transferFrom() → which will trigger atk.reenter() multiple times
+        // If the DEX is vulnerable, state corruption or unintended behavior may occur
         vm.prank(address(atk));
-        vm.expectRevert();  // Revert expected if DEX is reentrancy-safe
+        vm.expectRevert();  // Expect the swap to revert if DEX correctly defends against reentrancy
         atk.attack("ETH", "USDC", 100000000000000);
     }
-
-
 }
