@@ -1,85 +1,122 @@
 # 🧮 Minimal DEX (Decentralized Exchange)
 
-This project implements a **minimal Automated Market Maker (AMM)**-based DEX using Solidity. It supports token swaps between ETH (WETH) and USDC, using a simplified constant-product formula. The goal is to provide a clear and testable foundation for deeper experimentation with DEX design.
+This project implements a **minimal Automated Market Maker (AMM)**-based DEX using Solidity. It facilitates token swaps between ETH and USDC with a constant-product formula. The purpose is to provide a modular and extensible foundation for learning and experimenting with DEX internals, smart contract interactions, and reentrancy protection.
 
 ---
 
 ## 📌 Key Features
 
-- **ETH ⇄ USDC swapping**
-- **Constant-product (x * y = k) AMM formula**
-- **MockERC20-based testing for Anvil**
-- **Support for both Anvil (local) and Sepolia (testnet)**
-- **Pool reserve tracking**
-- **Unit tests with foundry/forge**
+- **ETH ⇄ USDC token swaps**
+- **Constant-product AMM** (`x * y = k`) pricing
+- **Support for both local (Anvil) and testnet (Sepolia) environments**
+- **Reentrancy protection**
+- **Pool reserve enforcement and access control**
+- **Modular architecture: swap logic separated from liquidity and configuration**
+- **MockERC20 support for unit tests**
+- **Full test suite using Foundry**
 
 ---
 
 ## ❗ Key Constraints & Design Decisions
 
-- Only **USDC (6 decimals)** and **WETH (18 decimals)** are supported
-- Token units (amounts and reserves) are stored and compared in **raw units**
-- No scaling of reserves is done — instead, inputs must match native decimals
-- DEX fails gracefully with custom errors like `UNSUPPORTED_OUT_TOKEN`
-- Test logic simulates both **user and pool roles** (via `mintApproveToken` and `approveDexToPullFrom`)
-- Ownership is enforced where appropriate via `onlyOwner` modifiers (or similar)
-- Reserve update logic is only accessible to trusted (e.g., DEX) contracts
+- Supports only **USDC (6 decimals)** and **ETH (18 decimals)** — matching native units
+- No decimal normalization — input values must match token precision
+- Designed for clarity: no router contracts, slippage math, or fees included (yet)
+- Reserve updates are restricted to the DEX contract
+- Custom error types (e.g., `UNSUPPORTED_OUT_TOKEN`, `INSUFFICIENT_LIQUIDITY`) for clear failure handling
+- Safe against reentrancy exploits through well-structured call ordering
 
 ---
 
-## 🗂 File Descriptions
+## 🗂 File Overview
 
 ### 📄 `MinimalDex.sol`
-- Main contract that acts as the entry point to the DEX
-- Delegates price calculation and pool updates to `AMM` and `LPool`
-- Exposes the `swap(...)` interface used by users
+- Main entry point for user interactions
+- Performs validations and orchestrates swaps
+- Interfaces with `AMM` for price/output logic and `LPool` for reserve control
 
 ### 📄 `AMM.sol`
-- Implements the **core AMM logic**
-- Calculates `amountOut` based on input, reserves, and constant-product formula
-- Calls `updateLPool` to modify reserves after each swap
+- Handles all core **price and amountOut calculations**
+- Maintains the constant-product invariant during swaps
+- Calls `updateReserves` on `LPool` after each trade
 
 ### 📄 `LPool.sol`
-- Manages **token reserves** (`s_reserveETH`, `s_reserveUSDC`)
-- Implements access control and validation for reserve updates
-- Verifies that token inputs and outputs are within allowable bounds
-
-### 📄 `NetworkConfig.sol`
-- Provides token address configuration for **Anvil vs Sepolia**
-- Automatically uses mock tokens on Anvil and real token addresses on Sepolia
+- Stores ETH and USDC **reserves**
+- Enforces **ownership control** on reserve updates
+- Throws on underflows or unauthorized access
+- Contains view methods to expose reserve states
 
 ### 📄 `MockERC20.sol`
-- Simple ERC20 implementation with a public `mint(...)` method
-- Used for local Anvil-based testing
+- Minimal ERC20 token with `mint()` and `enableReentrancyAttack()` for testability
+- Used to simulate ETH and USDC locally in Anvil-based tests
+
+### 📄 `NetworkConfig.sol`
+- Determines correct token addresses based on network
+- Automatically uses **Mock tokens on Anvil** and **real tokens on Sepolia**
+- Centralized config for all network-specific parameters
+
+### 📄 `ReentrantAttack.sol`
+- A deliberately malicious contract used to verify **reentrancy safety**
+- Executes a nested call back to the DEX during `transferFrom`
 
 ### 📄 `MinimalDex.t.sol`
-- Foundry-based unit test suite for the DEX
-- Includes positive and negative test cases:
-  - Insufficient liquidity
-  - Insufficient user balance
-  - Correct reserve updates
-- Uses helper contract (`TestSetup`) to simulate user roles and interactions
+- Foundry-based test suite for validating DEX behavior
+- Includes:
+  - Positive and negative swap scenarios
+  - Reentrancy attack protection checks
+  - Balance and reserve updates
+- Uses a helper contract (`TestSetup`) to simulate multiple actors and approval logic
 
 ### 📄 `DeployMinimalDex.s.sol`
-- Deployment script used to broadcast the DEX contracts to Sepolia or other supported networks
-- Uses `forge script` for deterministic deployments
+- Script to deploy the DEX on Sepolia (or other EVM networks)
+- Uses Foundry's `forge script` deployment flow with verification support
 
 ---
 
 ## 🧪 Testing
 
-Run tests locally using Foundry:
+Run all unit tests locally:
 ```bash
 forge test
+```
 
-Run specific test:
+Run a specific test:
+```bash
+forge test --mt testUserHasInsufficientETHExpectRevert
+```
 
-forge test --mt testSwapUSDC2ETHExpectRevertOnReserveUSDCExceed
-
-Test gas usage:
-
+Check gas usage:
+```bash
 forge test --gas-report
+```
 
-Deployment 
+---
+
+## 🚀 Deployment
+
 Deploy to Sepolia:
-forge script script/DeployMinimalDex.s.sol --rpc-url $SEPOLIA_RPC --private-key $PRIVATE_KEY --broadcast --verify
+```bash
+forge script script/DeployMinimalDex.s.sol \
+  --rpc-url $SEPOLIA_RPC \
+  --private-key $PRIVATE_KEY \
+  --broadcast \
+  --verify
+```
+
+---
+
+## 🔐 Security Considerations
+
+- **Reentrancy protection** is ensured by the ordering of state updates and external calls
+- **Custom errors** used for clearer debugging and gas optimization
+- This implementation omits fees, slippage, and external routers for simplicity, but can be extended
+
+---
+
+## 🧠 Future Work
+
+- Support for additional token pairs
+- Fee mechanics and liquidity provisioning
+- Frontend integration
+- Formal verification
+- Gas optimazation
