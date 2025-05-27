@@ -2,6 +2,9 @@
 
 This project implements a **minimal Automated Market Maker (AMM)**-based DEX using Solidity. It facilitates token swaps between ETH and USDC with a constant-product formula. The purpose is to provide a modular and extensible foundation for learning and experimenting with DEX internals, smart contract interactions, and reentrancy protection.
 
+> ⚠️ **Note:** This project was developed as part of my personal effort to learn **Blockchain Programming using Solidity**. It is intended for educational and experimental purposes. While care has been taken to enforce correctness and security principles, it is **not intended for production use** without thorough auditing and extension.
+
+
 ---
 
 ## 📌 Key Features
