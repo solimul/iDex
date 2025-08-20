@@ -1,0 +1,107 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/unit/MinimalDex.t.sol:MinimalDexTest
+[FAIL: revert: Unsupported tokenOut] testETH2USDCSwapForCorrectBalanceUpdate() (gas: 163088)
+Logs:
+  ====> 31337
+  remaining balance:  ETH 1000000000000000
+  ====> 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06 0x9e75a708809F7322CB706445362dfF01970a7f3A 0xF3Ff9472B5b5C685Dae7fAFde70209f704608C7C
+
+Traces:
+  [163088] MinimalDexTest::testETH2USDCSwapForCorrectBalanceUpdate()
+    ├─ [5485] MinimalDex::getETHContract() [staticcall]
+    │   ├─ [192] AMM::getETHContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63]
+    │   └─ ← [Return] MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63]
+    ├─ [61285] TestSetup::mintApproveToken(MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63], MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1], 1000000000000000 [1e15])
+    │   ├─ [29756] MockERC20::mint(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000000000000 [1e15])
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000000000000 [1e15])
+    │   │   └─ ← [Stop] 
+    │   ├─ [0] VM::prank(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   │   └─ ← [Return] 
+    │   ├─ [24762] MockERC20::approve(MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   └─ ← [Stop] 
+    ├─ [1104] MinimalDex::getUSDCContract() [staticcall]
+    │   ├─ [268] AMM::getUSDCContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]
+    │   └─ ← [Return] MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]
+    ├─ [28922] TestSetup::approveDexToPullFrom(MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF], MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1])
+    │   ├─ [0] VM::startPrank(LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF])
+    │   │   └─ ← [Return] 
+    │   ├─ [24762] MockERC20::approve(MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   ├─ emit Approval(owner: LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF], spender: MinimalDex: [0x90193C961A926261B756D1E5bb255e67ff9498A1], value: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   │   └─ ← [Return] true
+    │   ├─ [0] VM::stopPrank()
+    │   │   └─ ← [Return] 
+    │   └─ ← [Stop] 
+    ├─ [1104] MinimalDex::getUSDCContract() [staticcall]
+    │   ├─ [268] AMM::getUSDCContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]
+    │   └─ ← [Return] MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]
+    ├─ [2629] MockERC20::balanceOf(LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF]) [staticcall]
+    │   └─ ← [Return] 1000000 [1e6]
+    ├─ [985] MinimalDex::getETHContract() [staticcall]
+    │   ├─ [192] AMM::getETHContract() [staticcall]
+    │   │   └─ ← [Return] MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63]
+    │   └─ ← [Return] MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63]
+    ├─ [2629] MockERC20::balanceOf(LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF]) [staticcall]
+    │   └─ ← [Return] 1000000000000000 [1e15]
+    ├─ [2370] LPool::getETHPoolAmount() [staticcall]
+    │   └─ ← [Return] 1000000000000000 [1e15]
+    ├─ [2304] LPool::getUSDCPoolAmount() [staticcall]
+    │   └─ ← [Return] 1000000 [1e6]
+    ├─ [31801] MinimalDex::swap(100000000000000 [1e14], 0, "ETH", "USDC")
+    │   ├─ [0] console::log("====>", 31337 [3.133e4]) [staticcall]
+    │   │   └─ ← [Stop] 
+    │   ├─ [2343] AMM::getLPoolAddress() [staticcall]
+    │   │   └─ ← [Return] LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF]
+    │   ├─ [629] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
+    │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   ├─ [0] console::log("remaining balance: ", "ETH", 1000000000000000 [1e15]) [staticcall]
+    │   │   └─ ← [Stop] 
+    │   ├─ [629] MockERC20::balanceOf(MinimalDexTest: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496]) [staticcall]
+    │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   ├─ [4191] AMM::calculateOutAmount(100000000000000 [1e14], MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63], MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]) [staticcall]
+    │   │   ├─ [222] MockERC20::decimals() [staticcall]
+    │   │   │   └─ ← [Return] 18
+    │   │   ├─ [222] MockERC20::decimals() [staticcall]
+    │   │   │   └─ ← [Return] 18
+    │   │   ├─ [370] LPool::getETHPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   │   ├─ [304] LPool::getUSDCPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   └─ ← [Return] 90909 [9.09e4]
+    │   ├─ [4191] AMM::calculateOutAmount(100000000000000 [1e14], MockERC20: [0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63], MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06]) [staticcall]
+    │   │   ├─ [222] MockERC20::decimals() [staticcall]
+    │   │   │   └─ ← [Return] 18
+    │   │   ├─ [222] MockERC20::decimals() [staticcall]
+    │   │   │   └─ ← [Return] 18
+    │   │   ├─ [370] LPool::getETHPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000000000000 [1e15]
+    │   │   ├─ [304] LPool::getUSDCPoolAmount() [staticcall]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   └─ ← [Return] 90909 [9.09e4]
+    │   ├─ [1526] AMM::checkInsufficientLiquidity(MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], 90909 [9.09e4]) [staticcall]
+    │   │   ├─ [629] MockERC20::balanceOf(LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF]) [staticcall]
+    │   │   │   └─ ← [Return] 1000000 [1e6]
+    │   │   └─ ← [Stop] 
+    │   ├─ [343] AMM::getLPoolAddress() [staticcall]
+    │   │   └─ ← [Return] LPool: [0x8CD4672adAE6852c53f95c2C3C7D12db48E081aF]
+    │   ├─ [1396] LPool::updateLPool(MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], 100000000000000 [1e14], 90909 [9.09e4])
+    │   │   ├─ [0] console::log("====>", MockERC20: [0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06], MockERC20: [0x9e75a708809F7322CB706445362dfF01970a7f3A], MockERC20: [0xF3Ff9472B5b5C685Dae7fAFde70209f704608C7C]) [staticcall]
+    │   │   │   └─ ← [Stop] 
+    │   │   └─ ← [Revert] revert: Unsupported tokenOut
+    │   └─ ← [Revert] revert: Unsupported tokenOut
+    └─ ← [Revert] revert: Unsupported tokenOut
+
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 1.64ms (366.49µs CPU time)
+
+Ran 1 test suite in 1.61s (1.64ms CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/unit/MinimalDex.t.sol:MinimalDexTest
+[FAIL: revert: Unsupported tokenOut] testETH2USDCSwapForCorrectBalanceUpdate() (gas: 163088)
+
+Encountered a total of 1 failing tests, 0 tests succeeded
