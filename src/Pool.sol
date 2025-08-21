@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.29;
+pragma solidity 0.8.30;
 
 import {DepositRecord, SwapRecord} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IDex} from "./IDex.sol";
+import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
 
-contract Pool {
-
+contract Pool is ReentrancyGuard{
     event TokenDepositedToPool(
         string indexed tokenStr,
         address indexed token,
@@ -34,15 +34,15 @@ contract Pool {
 
 
 
-    modifier onlyOwnerAccess (address _sender) {
-    if (_sender != i_owner) 
-        revert error_OnlyOwnerCanAccessThisFunction (i_owner, _sender);
+    modifier onlyOwner () {
+    if (msg.sender != i_owner) 
+        revert error_OnlyOwnerCanAccessThisFunction (i_owner, msg.sender);
         _;
     }
 
-    modifier onlyFacadeContractAccess (address _sender) {
-    if (_sender != address (facade)) 
-        revert error_OnlyFacadeContractCanAccessThisFunction (address (facade), _sender);
+    modifier onlyFacade () {
+    if (msg.sender != address (facade)) 
+        revert error_OnlyFacadeContractCanAccessThisFunction (address (facade), msg.sender);
         _;
     }
 
@@ -74,7 +74,7 @@ contract Pool {
         uint256 _amountOut
     )
     external
-    onlyFacadeContractAccess(msg.sender) {
+    onlyFacade {
 
         balance [_tokenIn] += _amountIn;
         balance [_tokenOut] -= _amountOut;
@@ -103,7 +103,7 @@ contract Pool {
         uint256 _amount
     ) 
     public 
-    onlyFacadeContractAccess (msg.sender) {
+    onlyFacade {
         uint256 time = block.timestamp;
         DepositRecord memory record = DepositRecord ({
             depositor: _depositor,
@@ -124,16 +124,14 @@ contract Pool {
         uint256 _amount
     ) 
     external 
-    onlyFacadeContractAccess(msg.sender)
+    onlyFacade
+    nonReentrant
     returns (bool){
         bool success = IERC20(_token).transfer (_swapper, _amount);
         return success;
     }
 
-
-
-
-    function setContractReferences (address _idexAddress) external onlyOwnerAccess(msg.sender){
+    function setContractReferences (address _idexAddress) external onlyOwner(){
         facade = IDex (_idexAddress);
     }
 

@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-pragma solidity ^0.8.29;
+pragma solidity 0.8.30;
 
 import {LPool} from "./LPool.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";

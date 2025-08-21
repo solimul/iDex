@@ -20,7 +20,7 @@
 //  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  * SOFTWARE.
 //  */
-// pragma solidity ^0.8.29;
+// pragma solidity 0.8.30;
 
 // import {Test, console} from "../../lib/forge-std/src/Test.sol";
 // import {MinimalDex} from "../../src/MinimalDex.sol";
