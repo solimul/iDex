@@ -147,6 +147,7 @@ contract IDex is ReentrancyGuard {
     hasApproval (msg.sender, _tokenInString,  _amount)
     addressHasEnoughBalance (msg.sender, _tokenInString, _amount)
     nonReentrant {
+        // check
         IERC20 tokenIn = IERC20 (tokenMap [_tokenInString]);
         IERC20 tokenOut =   IERC20 (tokenMap [_tokenOutString]);
         uint256 outAmount = pool.calculateOutAmount(_amount, address (tokenIn),address (tokenOut));
@@ -155,6 +156,10 @@ contract IDex is ReentrancyGuard {
         if (outAmount <= minAmountOut)
         revert error_SlippageTooHigh ();
 
+        //effect
+        pool.updateStatesOnSwap (msg.sender, address (tokenIn), address (tokenOut), _amount, outAmount);
+
+        //interaction
         uint256 outTokenBalance0 = tokenOut.balanceOf (address (pool));
         if (outTokenBalance0 < outAmount)
             revert error_DoesNotHaveEnoughBalance (address (pool), _tokenOutString, outTokenBalance0, _amount);
@@ -167,9 +172,6 @@ contract IDex is ReentrancyGuard {
         uint256 outTokenBalance1 = tokenOut.balanceOf (address (pool));
         if (outTokenBalance1 != outTokenBalance0 - outAmount)
             revert error_PostTransferBalanceMismatch ();
-
-        pool.updateStatesOnSwap (msg.sender, address (tokenIn), address (tokenOut), _amount, outAmount);
-
 
         emit SwapDone (msg.sender, address (tokenIn), address (tokenOut), _amount, outAmount, block.timestamp);    
     }
