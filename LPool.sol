@@ -23,7 +23,7 @@
 
 pragma solidity 0.8.30;
 import {NetworkConfig} from "./NetworkConfig.sol";
-import {MockERC20} from "../mocks/MockERC20.sol";
+import {MyERC20} from "../mocks/MyERC20.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {console} from "../lib/forge-std/src/console.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -141,8 +141,8 @@ contract LPool {
     function fundContract(address sender) public {
         if (block.chainid == 31337) {
             // Local testing — mint directly to LPool
-            MockERC20 usdc = MockERC20(i_usdc);
-            MockERC20 eth = MockERC20(i_eth);
+            MyERC20 usdc = MyERC20(i_usdc);
+            MyERC20 eth = MyERC20(i_eth);
             usdc.mint(address(this), s_reserveUSDC);
             eth.mint(address(this), s_reserveETH);
         } else if (block.chainid == 11155111) {

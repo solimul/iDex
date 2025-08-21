@@ -24,7 +24,7 @@
 // pragma solidity 0.8.30;
 
 // import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-// import {MockERC20} from "../mocks/MockERC20.sol";
+// import {MyERC20} from "../mocks/MyERC20.sol";
 // import {MinimalDex} from "../src/MinimalDex.sol";
 // import {LPool} from "../src/LPool.sol";
 // import {Script} from "../lib/forge-std/src/Script.sol";
@@ -44,8 +44,8 @@
 //             IERC20(weth).approve(lpool.getLPoolAddress(), type(uint256).max);
 //         } else if (block.chainid == ANVIL_CHAINID) {
 //             // Mint mock tokens to LPool directly for testing
-//             MockERC20(dex.getUSDCContract()).mint(address(lpool), reserveUSDC);
-//             MockERC20(dex.getETHContract()).mint(address(lpool), reserveETH);
+//             MyERC20(dex.getUSDCContract()).mint(address(lpool), reserveUSDC);
+//             MyERC20(dex.getETHContract()).mint(address(lpool), reserveETH);
 
 //             IERC20(dex.getUSDCContract()).approve(address(lpool), type(uint256).max);
 //             IERC20(dex.getETHContract()).approve(address(lpool), type(uint256).max);
@@ -60,11 +60,11 @@
 //         uint256 amount
 //     ) external {
 //         if (block.chainid == ANVIL_CHAINID) {
-//             MockERC20(token).mint(to, amount);
+//             MyERC20(token).mint(to, amount);
 //             // The approval must come from the `to` address (i.e., the token holder)
 //             vm.prank(to);
 //             // Approve the spender to pull tokens from the `to` address
-//             MockERC20(token).approve(spender, type(uint256).max);
+//             MyERC20(token).approve(spender, type(uint256).max);
 //         }
 //     }
 

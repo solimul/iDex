@@ -15,7 +15,7 @@ This project implements a **minimal Automated Market Maker (AMM)**-based DEX usi
 - **Reentrancy protection**
 - **Pool reserve enforcement and access control**
 - **Modular architecture: swap logic separated from liquidity and configuration**
-- **MockERC20 support for unit tests**
+- **MyERC20 support for unit tests**
 - **Full test suite using Foundry**
 
 ---
@@ -49,7 +49,7 @@ This project implements a **minimal Automated Market Maker (AMM)**-based DEX usi
 - Throws on underflows or unauthorized access
 - Contains view methods to expose reserve states
 
-### 📄 `MockERC20.sol`
+### 📄 `MyERC20.sol`
 - Minimal ERC20 token with `mint()` and `enableReentrancyAttack()` for testability
 - Used to simulate ETH and USDC locally in Anvil-based tests
 

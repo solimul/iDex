@@ -4,7 +4,7 @@ pragma solidity >=0.6.2 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import {IMulticall3} from "./interfaces/IMulticall3.sol";
-import {MockERC20} from "./mocks/MockERC20.sol";
+import {MyERC20} from "./mocks/MyERC20.sol";
 import {MockERC721} from "./mocks/MockERC721.sol";
 import {VmSafe} from "./Vm.sol";
 
@@ -120,11 +120,11 @@ abstract contract StdUtils {
     }
 
     /// @dev returns an initialized mock ERC20 contract
-    function deployMockERC20(string memory name, string memory symbol, uint8 decimals)
+    function deployMyERC20(string memory name, string memory symbol, uint8 decimals)
         internal
-        returns (MockERC20 mock)
+        returns (MyERC20 mock)
     {
-        mock = new MockERC20();
+        mock = new MyERC20();
         mock.initialize(name, symbol, decimals);
     }
 

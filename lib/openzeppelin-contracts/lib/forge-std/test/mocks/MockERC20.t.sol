@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
-import {MockERC20} from "../../src/mocks/MockERC20.sol";
+import {MyERC20} from "../../src/mocks/MyERC20.sol";
 import {StdCheats} from "../../src/StdCheats.sol";
 import {Test} from "../../src/Test.sol";
 
-contract Token_ERC20 is MockERC20 {
+contract Token_ERC20 is MyERC20 {
     constructor(string memory name, string memory symbol, uint8 decimals) {
         initialize(name, symbol, decimals);
     }
@@ -19,7 +19,7 @@ contract Token_ERC20 is MockERC20 {
     }
 }
 
-contract MockERC20Test is StdCheats, Test {
+contract MyERC20Test is StdCheats, Test {
     Token_ERC20 token;
 
     bytes32 constant PERMIT_TYPEHASH =

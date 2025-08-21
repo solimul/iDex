@@ -10,16 +10,16 @@ AMM.calculateOutAmount(uint256,address,address).reserveIn (src/AMM.sol#141) is a
 AMM.calculateOutAmount(uint256,address,address).reserveOut (src/AMM.sol#142) is a local variable never initialized
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-local-variables
 INFO:Detectors:
-MockERC20.constructor(string,string).name (mocks/MockERC20.sol#46) shadows:
+MyERC20.constructor(string,string).name (mocks/MyERC20.sol#46) shadows:
         - ERC20.name() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#52-54) (function)
         - IERC20Metadata.name() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#15) (function)
-MockERC20.constructor(string,string).symbol (mocks/MockERC20.sol#46) shadows:
+MyERC20.constructor(string,string).symbol (mocks/MyERC20.sol#46) shadows:
         - ERC20.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#60-62) (function)
         - IERC20Metadata.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#20) (function)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#local-variable-shadowing
 INFO:Detectors:
-MockERC20.enableReentrancyAttack(address)._target (mocks/MockERC20.sol#58) lacks a zero-check on :
-                - reentrancyTarget = _target (mocks/MockERC20.sol#60)
+MyERC20.enableReentrancyAttack(address)._target (mocks/MyERC20.sol#58) lacks a zero-check on :
+                - reentrancyTarget = _target (mocks/MyERC20.sol#60)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
 INFO:Detectors:
 Reentrancy in MinimalDex.swap(uint256,uint256,string,string) (src/MinimalDex.sol#120-157):
@@ -58,7 +58,7 @@ INFO:Detectors:
                 -^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4)
                 -^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#4)
         - Version constraint 0.8.30 is used by:
-                -0.8.30 (mocks/MockERC20.sol#24)
+                -0.8.30 (mocks/MyERC20.sol#24)
                 -0.8.30 (src/AMM.sol#24)
                 -0.8.30 (src/LPool.sol#24)
                 -0.8.30 (src/MinimalDex.sol#25)
@@ -90,14 +90,14 @@ Low level call in MinimalDex.safeTransferFrom(address,address,address,uint256) (
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
 INFO:Detectors:
 Contract console (lib/forge-std/src/console.sol#4-1560) is not in CapWords
-Parameter MockERC20.enableReentrancyAttack(address)._target (mocks/MockERC20.sol#58) is not in mixedCase
-Variable NetworkConfig.i_mockerc20_usdc (src/NetworkConfig.sol#47) is not in mixedCase
-Variable NetworkConfig.i_mockerc20_eth (src/NetworkConfig.sol#48) is not in mixedCase
+Parameter MyERC20.enableReentrancyAttack(address)._target (mocks/MyERC20.sol#58) is not in mixedCase
+Variable NetworkConfig.i_MyERC20_usdc (src/NetworkConfig.sol#47) is not in mixedCase
+Variable NetworkConfig.i_MyERC20_eth (src/NetworkConfig.sol#48) is not in mixedCase
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
 INFO:Detectors:
 AMM.i_owner (src/AMM.sol#63) is never used in AMM (src/AMM.sol#39-172)
-NetworkConfig.i_mockerc20_usdc (src/NetworkConfig.sol#47) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)
-NetworkConfig.i_mockerc20_eth (src/NetworkConfig.sol#48) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)
+NetworkConfig.i_MyERC20_usdc (src/NetworkConfig.sol#47) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)
+NetworkConfig.i_MyERC20_eth (src/NetworkConfig.sol#48) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-state-variable
 INFO:Detectors:
 AMM.lPool (src/AMM.sol#62) should be immutable 

@@ -1205,9 +1205,9 @@
             "source_mapping": {
               "start": 1986,
               "length": 18,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 46
@@ -1222,9 +1222,9 @@
                 "source_mapping": {
                   "start": 1974,
                   "length": 88,
-                  "filename_relative": "mocks/MockERC20.sol",
-                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                  "filename_short": "mocks/MockERC20.sol",
+                  "filename_relative": "mocks/MyERC20.sol",
+                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                  "filename_short": "mocks/MyERC20.sol",
                   "is_dependency": false,
                   "lines": [
                     46,
@@ -1237,13 +1237,13 @@
                 "type_specific_fields": {
                   "parent": {
                     "type": "contract",
-                    "name": "MockERC20",
+                    "name": "MyERC20",
                     "source_mapping": {
                       "start": 1650,
                       "length": 1760,
-                      "filename_relative": "mocks/MockERC20.sol",
-                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                      "filename_short": "mocks/MockERC20.sol",
+                      "filename_relative": "mocks/MyERC20.sol",
+                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                      "filename_short": "mocks/MyERC20.sol",
                       "is_dependency": false,
                       "lines": [
                         36,
@@ -1678,9 +1678,9 @@
             }
           }
         ],
-        "description": "MockERC20.constructor(string,string).name (mocks/MockERC20.sol#46) shadows:\n\t- ERC20.name() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#52-54) (function)\n\t- IERC20Metadata.name() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#15) (function)\n",
-        "markdown": "[MockERC20.constructor(string,string).name](mocks/MockERC20.sol#L46) shadows:\n\t- [ERC20.name()](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L52-L54) (function)\n\t- [IERC20Metadata.name()](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L15) (function)\n",
-        "first_markdown_element": "mocks/MockERC20.sol#L46",
+        "description": "MyERC20.constructor(string,string).name (mocks/MyERC20.sol#46) shadows:\n\t- ERC20.name() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#52-54) (function)\n\t- IERC20Metadata.name() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#15) (function)\n",
+        "markdown": "[MyERC20.constructor(string,string).name](mocks/MyERC20.sol#L46) shadows:\n\t- [ERC20.name()](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L52-L54) (function)\n\t- [IERC20Metadata.name()](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L15) (function)\n",
+        "first_markdown_element": "mocks/MyERC20.sol#L46",
         "id": "6ca9984f686fda8895c6eb02cc5798622025a4432c3d1f2b13c244ff6ff3bb44",
         "check": "shadowing-local",
         "impact": "Low",
@@ -1694,9 +1694,9 @@
             "source_mapping": {
               "start": 2006,
               "length": 20,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 46
@@ -1711,9 +1711,9 @@
                 "source_mapping": {
                   "start": 1974,
                   "length": 88,
-                  "filename_relative": "mocks/MockERC20.sol",
-                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                  "filename_short": "mocks/MockERC20.sol",
+                  "filename_relative": "mocks/MyERC20.sol",
+                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                  "filename_short": "mocks/MyERC20.sol",
                   "is_dependency": false,
                   "lines": [
                     46,
@@ -1726,13 +1726,13 @@
                 "type_specific_fields": {
                   "parent": {
                     "type": "contract",
-                    "name": "MockERC20",
+                    "name": "MyERC20",
                     "source_mapping": {
                       "start": 1650,
                       "length": 1760,
-                      "filename_relative": "mocks/MockERC20.sol",
-                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                      "filename_short": "mocks/MockERC20.sol",
+                      "filename_relative": "mocks/MyERC20.sol",
+                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                      "filename_short": "mocks/MyERC20.sol",
                       "is_dependency": false,
                       "lines": [
                         36,
@@ -2167,9 +2167,9 @@
             }
           }
         ],
-        "description": "MockERC20.constructor(string,string).symbol (mocks/MockERC20.sol#46) shadows:\n\t- ERC20.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#60-62) (function)\n\t- IERC20Metadata.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#20) (function)\n",
-        "markdown": "[MockERC20.constructor(string,string).symbol](mocks/MockERC20.sol#L46) shadows:\n\t- [ERC20.symbol()](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L60-L62) (function)\n\t- [IERC20Metadata.symbol()](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L20) (function)\n",
-        "first_markdown_element": "mocks/MockERC20.sol#L46",
+        "description": "MyERC20.constructor(string,string).symbol (mocks/MyERC20.sol#46) shadows:\n\t- ERC20.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#60-62) (function)\n\t- IERC20Metadata.symbol() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#20) (function)\n",
+        "markdown": "[MyERC20.constructor(string,string).symbol](mocks/MyERC20.sol#L46) shadows:\n\t- [ERC20.symbol()](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L60-L62) (function)\n\t- [IERC20Metadata.symbol()](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L20) (function)\n",
+        "first_markdown_element": "mocks/MyERC20.sol#L46",
         "id": "df823bf82561ddc6c3b616ecad8e963ca604d4df11362337b5f12df70554ddb2",
         "check": "shadowing-local",
         "impact": "Low",
@@ -2183,9 +2183,9 @@
             "source_mapping": {
               "start": 2451,
               "length": 15,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 58
@@ -2200,9 +2200,9 @@
                 "source_mapping": {
                   "start": 2419,
                   "length": 134,
-                  "filename_relative": "mocks/MockERC20.sol",
-                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                  "filename_short": "mocks/MockERC20.sol",
+                  "filename_relative": "mocks/MyERC20.sol",
+                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                  "filename_short": "mocks/MyERC20.sol",
                   "is_dependency": false,
                   "lines": [
                     58,
@@ -2216,13 +2216,13 @@
                 "type_specific_fields": {
                   "parent": {
                     "type": "contract",
-                    "name": "MockERC20",
+                    "name": "MyERC20",
                     "source_mapping": {
                       "start": 1650,
                       "length": 1760,
-                      "filename_relative": "mocks/MockERC20.sol",
-                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                      "filename_short": "mocks/MockERC20.sol",
+                      "filename_relative": "mocks/MyERC20.sol",
+                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                      "filename_short": "mocks/MyERC20.sol",
                       "is_dependency": false,
                       "lines": [
                         36,
@@ -2289,9 +2289,9 @@
             "source_mapping": {
               "start": 2520,
               "length": 26,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 60
@@ -2306,9 +2306,9 @@
                 "source_mapping": {
                   "start": 2419,
                   "length": 134,
-                  "filename_relative": "mocks/MockERC20.sol",
-                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                  "filename_short": "mocks/MockERC20.sol",
+                  "filename_relative": "mocks/MyERC20.sol",
+                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                  "filename_short": "mocks/MyERC20.sol",
                   "is_dependency": false,
                   "lines": [
                     58,
@@ -2322,13 +2322,13 @@
                 "type_specific_fields": {
                   "parent": {
                     "type": "contract",
-                    "name": "MockERC20",
+                    "name": "MyERC20",
                     "source_mapping": {
                       "start": 1650,
                       "length": 1760,
-                      "filename_relative": "mocks/MockERC20.sol",
-                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                      "filename_short": "mocks/MockERC20.sol",
+                      "filename_relative": "mocks/MyERC20.sol",
+                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                      "filename_short": "mocks/MyERC20.sol",
                       "is_dependency": false,
                       "lines": [
                         36,
@@ -2390,9 +2390,9 @@
             }
           }
         ],
-        "description": "MockERC20.enableReentrancyAttack(address)._target (mocks/MockERC20.sol#58) lacks a zero-check on :\n\t\t- reentrancyTarget = _target (mocks/MockERC20.sol#60)\n",
-        "markdown": "[MockERC20.enableReentrancyAttack(address)._target](mocks/MockERC20.sol#L58) lacks a zero-check on :\n\t\t- [reentrancyTarget = _target](mocks/MockERC20.sol#L60)\n",
-        "first_markdown_element": "mocks/MockERC20.sol#L58",
+        "description": "MyERC20.enableReentrancyAttack(address)._target (mocks/MyERC20.sol#58) lacks a zero-check on :\n\t\t- reentrancyTarget = _target (mocks/MyERC20.sol#60)\n",
+        "markdown": "[MyERC20.enableReentrancyAttack(address)._target](mocks/MyERC20.sol#L58) lacks a zero-check on :\n\t\t- [reentrancyTarget = _target](mocks/MyERC20.sol#L60)\n",
+        "first_markdown_element": "mocks/MyERC20.sol#L58",
         "id": "a1de02c2649c9bb19a11abee8028ea703a695b267a423e8d9cc396ad6a57879e",
         "check": "missing-zero-check",
         "impact": "Low",
@@ -11868,9 +11868,9 @@
             "source_mapping": {
               "start": 1155,
               "length": 23,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 24
@@ -11983,8 +11983,8 @@
             }
           }
         ],
-        "description": "3 different versions of Solidity are used:\n\t- Version constraint >=0.4.22<0.9.0 is used by:\n\t\t->=0.4.22<0.9.0 (lib/forge-std/src/console.sol#2)\n\t- Version constraint ^0.8.20 is used by:\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#3)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#4)\n\t- Version constraint 0.8.30 is used by:\n\t\t-0.8.30 (mocks/MockERC20.sol#24)\n\t\t-0.8.30 (src/AMM.sol#24)\n\t\t-0.8.30 (src/LPool.sol#24)\n\t\t-0.8.30 (src/MinimalDex.sol#25)\n\t\t-0.8.30 (src/NetworkConfig.sol#24)\n",
-        "markdown": "3 different versions of Solidity are used:\n\t- Version constraint >=0.4.22<0.9.0 is used by:\n\t\t-[>=0.4.22<0.9.0](lib/forge-std/src/console.sol#L2)\n\t- Version constraint ^0.8.20 is used by:\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#L3)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/utils/Context.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#L4)\n\t- Version constraint 0.8.30 is used by:\n\t\t-[0.8.30](mocks/MockERC20.sol#L24)\n\t\t-[0.8.30](src/AMM.sol#L24)\n\t\t-[0.8.30](src/LPool.sol#L24)\n\t\t-[0.8.30](src/MinimalDex.sol#L25)\n\t\t-[0.8.30](src/NetworkConfig.sol#L24)\n",
+        "description": "3 different versions of Solidity are used:\n\t- Version constraint >=0.4.22<0.9.0 is used by:\n\t\t->=0.4.22<0.9.0 (lib/forge-std/src/console.sol#2)\n\t- Version constraint ^0.8.20 is used by:\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#3)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4)\n\t\t-^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#4)\n\t- Version constraint 0.8.30 is used by:\n\t\t-0.8.30 (mocks/MyERC20.sol#24)\n\t\t-0.8.30 (src/AMM.sol#24)\n\t\t-0.8.30 (src/LPool.sol#24)\n\t\t-0.8.30 (src/MinimalDex.sol#25)\n\t\t-0.8.30 (src/NetworkConfig.sol#24)\n",
+        "markdown": "3 different versions of Solidity are used:\n\t- Version constraint >=0.4.22<0.9.0 is used by:\n\t\t-[>=0.4.22<0.9.0](lib/forge-std/src/console.sol#L2)\n\t- Version constraint ^0.8.20 is used by:\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#L3)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/utils/Context.sol#L4)\n\t\t-[^0.8.20](lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#L4)\n\t- Version constraint 0.8.30 is used by:\n\t\t-[0.8.30](mocks/MyERC20.sol#L24)\n\t\t-[0.8.30](src/AMM.sol#L24)\n\t\t-[0.8.30](src/LPool.sol#L24)\n\t\t-[0.8.30](src/MinimalDex.sol#L25)\n\t\t-[0.8.30](src/NetworkConfig.sol#L24)\n",
         "first_markdown_element": "lib/forge-std/src/console.sol#L2",
         "id": "717f6f6150b240f98a203e247e34b141827830ba7932451783e7c46c62c8dfd2",
         "check": "pragma",
@@ -12713,7 +12713,7 @@
         "elements": [
           {
             "type": "variable",
-            "name": "i_mockerc20_usdc",
+            "name": "i_MyERC20_usdc",
             "source_mapping": {
               "start": 2065,
               "length": 44,
@@ -12790,8 +12790,8 @@
             }
           }
         ],
-        "description": "Variable NetworkConfig.i_mockerc20_usdc (src/NetworkConfig.sol#47) is not in mixedCase\n",
-        "markdown": "Variable [NetworkConfig.i_mockerc20_usdc](src/NetworkConfig.sol#L47) is not in mixedCase\n",
+        "description": "Variable NetworkConfig.i_MyERC20_usdc (src/NetworkConfig.sol#47) is not in mixedCase\n",
+        "markdown": "Variable [NetworkConfig.i_MyERC20_usdc](src/NetworkConfig.sol#L47) is not in mixedCase\n",
         "first_markdown_element": "src/NetworkConfig.sol#L47",
         "id": "1c8fabbae0a350e9128ac3facc17ae77c9b2a4558412874e55be54898e57fb53",
         "check": "naming-convention",
@@ -12802,7 +12802,7 @@
         "elements": [
           {
             "type": "variable",
-            "name": "i_mockerc20_eth",
+            "name": "i_MyERC20_eth",
             "source_mapping": {
               "start": 2115,
               "length": 43,
@@ -12879,8 +12879,8 @@
             }
           }
         ],
-        "description": "Variable NetworkConfig.i_mockerc20_eth (src/NetworkConfig.sol#48) is not in mixedCase\n",
-        "markdown": "Variable [NetworkConfig.i_mockerc20_eth](src/NetworkConfig.sol#L48) is not in mixedCase\n",
+        "description": "Variable NetworkConfig.i_MyERC20_eth (src/NetworkConfig.sol#48) is not in mixedCase\n",
+        "markdown": "Variable [NetworkConfig.i_MyERC20_eth](src/NetworkConfig.sol#L48) is not in mixedCase\n",
         "first_markdown_element": "src/NetworkConfig.sol#L48",
         "id": "2d50616de3544cfc358a8fa46472844a05168a51dea474ef06fc32642281081b",
         "check": "naming-convention",
@@ -14483,9 +14483,9 @@
             "source_mapping": {
               "start": 2451,
               "length": 15,
-              "filename_relative": "mocks/MockERC20.sol",
-              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-              "filename_short": "mocks/MockERC20.sol",
+              "filename_relative": "mocks/MyERC20.sol",
+              "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+              "filename_short": "mocks/MyERC20.sol",
               "is_dependency": false,
               "lines": [
                 58
@@ -14500,9 +14500,9 @@
                 "source_mapping": {
                   "start": 2419,
                   "length": 134,
-                  "filename_relative": "mocks/MockERC20.sol",
-                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                  "filename_short": "mocks/MockERC20.sol",
+                  "filename_relative": "mocks/MyERC20.sol",
+                  "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                  "filename_short": "mocks/MyERC20.sol",
                   "is_dependency": false,
                   "lines": [
                     58,
@@ -14516,13 +14516,13 @@
                 "type_specific_fields": {
                   "parent": {
                     "type": "contract",
-                    "name": "MockERC20",
+                    "name": "MyERC20",
                     "source_mapping": {
                       "start": 1650,
                       "length": 1760,
-                      "filename_relative": "mocks/MockERC20.sol",
-                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MockERC20.sol",
-                      "filename_short": "mocks/MockERC20.sol",
+                      "filename_relative": "mocks/MyERC20.sol",
+                      "filename_absolute": "/home/solimul/MyComputer/defi-projects/MinDex/mocks/MyERC20.sol",
+                      "filename_short": "mocks/MyERC20.sol",
                       "is_dependency": false,
                       "lines": [
                         36,
@@ -14588,9 +14588,9 @@
             }
           }
         ],
-        "description": "Parameter MockERC20.enableReentrancyAttack(address)._target (mocks/MockERC20.sol#58) is not in mixedCase\n",
-        "markdown": "Parameter [MockERC20.enableReentrancyAttack(address)._target](mocks/MockERC20.sol#L58) is not in mixedCase\n",
-        "first_markdown_element": "mocks/MockERC20.sol#L58",
+        "description": "Parameter MyERC20.enableReentrancyAttack(address)._target (mocks/MyERC20.sol#58) is not in mixedCase\n",
+        "markdown": "Parameter [MyERC20.enableReentrancyAttack(address)._target](mocks/MyERC20.sol#L58) is not in mixedCase\n",
+        "first_markdown_element": "mocks/MyERC20.sol#L58",
         "id": "99579ed0023f8efc40a48362a61f06552bc93f8e706f04ca2be2ec2379c1e4f7",
         "check": "naming-convention",
         "impact": "Informational",
@@ -14600,7 +14600,7 @@
         "elements": [
           {
             "type": "variable",
-            "name": "i_mockerc20_eth",
+            "name": "i_MyERC20_eth",
             "source_mapping": {
               "start": 2115,
               "length": 43,
@@ -14728,8 +14728,8 @@
             }
           }
         ],
-        "description": "NetworkConfig.i_mockerc20_eth (src/NetworkConfig.sol#48) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)\n",
-        "markdown": "[NetworkConfig.i_mockerc20_eth](src/NetworkConfig.sol#L48) is never used in [NetworkConfig](src/NetworkConfig.sol#L42-L80)\n",
+        "description": "NetworkConfig.i_MyERC20_eth (src/NetworkConfig.sol#48) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)\n",
+        "markdown": "[NetworkConfig.i_MyERC20_eth](src/NetworkConfig.sol#L48) is never used in [NetworkConfig](src/NetworkConfig.sol#L42-L80)\n",
         "first_markdown_element": "src/NetworkConfig.sol#L48",
         "id": "11fbfdc964c59a7df1491540ad4b9a988947e0a4e978a6f581e1452b41f45aca",
         "check": "unused-state",
@@ -15070,7 +15070,7 @@
         "elements": [
           {
             "type": "variable",
-            "name": "i_mockerc20_usdc",
+            "name": "i_MyERC20_usdc",
             "source_mapping": {
               "start": 2065,
               "length": 44,
@@ -15198,8 +15198,8 @@
             }
           }
         ],
-        "description": "NetworkConfig.i_mockerc20_usdc (src/NetworkConfig.sol#47) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)\n",
-        "markdown": "[NetworkConfig.i_mockerc20_usdc](src/NetworkConfig.sol#L47) is never used in [NetworkConfig](src/NetworkConfig.sol#L42-L80)\n",
+        "description": "NetworkConfig.i_MyERC20_usdc (src/NetworkConfig.sol#47) is never used in NetworkConfig (src/NetworkConfig.sol#42-80)\n",
+        "markdown": "[NetworkConfig.i_MyERC20_usdc](src/NetworkConfig.sol#L47) is never used in [NetworkConfig](src/NetworkConfig.sol#L42-L80)\n",
         "first_markdown_element": "src/NetworkConfig.sol#L47",
         "id": "5166a4daf9fc9740fec8c48db8e8e550a329fb80b5c61ab531124f6c99c1923b",
         "check": "unused-state",

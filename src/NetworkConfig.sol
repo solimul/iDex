@@ -37,21 +37,21 @@ import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20
  * Commonly used to safely perform token transfers, approvals, etc.
  */
 import {SafeERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {MockERC20} from "../mocks/MockERC20.sol";
+import {MyERC20} from "../mocks/MyERC20.sol";
 
 contract NetworkConfig {
 
     address private immutable i_owner;
     address private immutable i_usdc;
     address private immutable i_eth;
-    MockERC20 private immutable i_mockerc20_usdc;
-    MockERC20 private immutable i_mockerc20_eth;
+    MyERC20 private immutable i_MyERC20_usdc;
+    MyERC20 private immutable i_MyERC20_eth;
 
     constructor () {
         i_owner = msg.sender;
         if (block.chainid == 31337) { // test-net 
-            i_usdc = address(new MockERC20("Mock USDC", "mUSDC"));
-            i_eth = address(new MockERC20("Mock ETH", "mETH"));
+            i_usdc = address(new MyERC20("Mock USDC", "mUSDC"));
+            i_eth = address(new MyERC20("Mock ETH", "mETH"));
 
         } else if (block.chainid == 11155111) {  // sepolia
             i_usdc = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 ; // USDC

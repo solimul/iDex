@@ -27,7 +27,7 @@
 // import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 // import {LPool} from "../../src/LPool.sol";
 // import {AMM} from "../../src/AMM.sol";
-// import {MockERC20} from "../../mocks/MockERC20.sol";
+// import {MyERC20} from "../../mocks/MyERC20.sol";
 // import {TestSetup} from "../../utils/TestSetup.sol";
 // import {ReentrancyAttacker} from "../../mocks/security/bad-contracts/ReentrantAttack.sol";
 
@@ -313,9 +313,9 @@
 //     }
     
 //     function testReentrancyAttack() public {
-//         // 1. Retrieve the existing ETH token from the deployed DEX and cast it as MockERC20
+//         // 1. Retrieve the existing ETH token from the deployed DEX and cast it as MyERC20
 //         // This allows us to enable the reentrancy feature dynamically
-//         MockERC20 ethToken = MockERC20(dex.getETHContract());
+//         MyERC20 ethToken = MyERC20(dex.getETHContract());
 
 //         // 2. Deploy the attacker contract with a reentrancy depth of 12
 //         // Then enable reentrancy in the token and register the attacker as the callback target

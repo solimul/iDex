@@ -31,37 +31,58 @@ interface IReentrancyCallback {
     function reenter() external;
 }
 
-/// @title MockERC20 with Optional Reentrancy Injection
+/// @title MyERC20 with Optional Reentrancy Injection
 /// @dev This mock token behaves like a standard ERC20 token, but can optionally invoke a reentrant callback
-contract MockERC20 is ERC20 {
+contract MyERC20 is ERC20 {
+    error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
+
+    address private immutable iOwner;
     // Flag to enable/disable reentrancy behavior
     bool public enableReentrancy;
 
     // Address to call back into if reentrancy is enabled
     address public reentrancyTarget;
 
+
+
+    modifier onlyOwner () {
+    if (msg.sender != iOwner) 
+        revert error_OnlyOwnerCanAccessThisFunction (iOwner, msg.sender);
+        _;
+    }
     /// @notice Creates a mock ERC20 token
     /// @param name Token name
     /// @param symbol Token symbol
     constructor(string memory name, string memory symbol)
         ERC20(name, symbol)
-    {}
+    {
+        iOwner = msg.sender;
+    }
 
     /// @notice Mints tokens to a specified address
     /// @dev For testing only; unrestricted minting
-    function mint(address to, uint256 amount) external {
+    function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
+    }
+
+    function burn(uint256 amount) external onlyOwner {
+        _burn(msg.sender, amount);
+    }
+
+    function burnFrom(address account, uint256 amount) external onlyOwner{
+        _spendAllowance(account, msg.sender, amount); // reduce allowance
+        _burn(account, amount);                       // reduce balance & supply
     }
 
     /// @notice Enables reentrancy attack behavior
     /// @param _target The address that will receive the reentrant callback (must implement `reenter()`)
-    function enableReentrancyAttack(address _target) external {
+    function enableReentrancyAttack(address _target) external onlyOwner {
         enableReentrancy = true;
         reentrancyTarget = _target;
     }
 
     /// @notice Disables reentrancy attack behavior
-    function disableReentrancyAttack() external {
+    function disableReentrancyAttack() external onlyOwner {
         enableReentrancy = false;
         reentrancyTarget = address(0);
     }

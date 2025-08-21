@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./ERC4626.prop.sol";
 
-interface IMockERC20 is IERC20 {
+interface IMyERC20 is IERC20 {
     function mint(address to, uint value) external;
     function burn(address from, uint value) external;
 }
@@ -34,12 +34,12 @@ abstract contract ERC4626Test is ERC4626Prop {
             vm.assume(_isEOA(user));
             // shares
             uint shares = init.share[i];
-            try IMockERC20(_underlying_).mint(user, shares) {} catch { vm.assume(false); }
+            try IMyERC20(_underlying_).mint(user, shares) {} catch { vm.assume(false); }
             _approve(_underlying_, user, _vault_, shares);
             vm.prank(user); try IERC4626(_vault_).deposit(shares, user) {} catch { vm.assume(false); }
             // assets
             uint assets = init.asset[i];
-            try IMockERC20(_underlying_).mint(user, assets) {} catch { vm.assume(false); }
+            try IMyERC20(_underlying_).mint(user, assets) {} catch { vm.assume(false); }
         }
 
         // setup initial yield for vault
@@ -50,11 +50,11 @@ abstract contract ERC4626Test is ERC4626Prop {
     function setUpYield(Init memory init) public virtual {
         if (init.yield >= 0) { // gain
             uint gain = uint(init.yield);
-            try IMockERC20(_underlying_).mint(_vault_, gain) {} catch { vm.assume(false); } // this can be replaced by calling yield generating functions if provided by the vault
+            try IMyERC20(_underlying_).mint(_vault_, gain) {} catch { vm.assume(false); } // this can be replaced by calling yield generating functions if provided by the vault
         } else { // loss
             vm.assume(init.yield > type(int).min); // avoid overflow in conversion
             uint loss = uint(-1 * init.yield);
-            try IMockERC20(_underlying_).burn(_vault_, loss) {} catch { vm.assume(false); } // this can be replaced by calling yield generating functions if provided by the vault
+            try IMyERC20(_underlying_).burn(_vault_, loss) {} catch { vm.assume(false); } // this can be replaced by calling yield generating functions if provided by the vault
         }
     }
 

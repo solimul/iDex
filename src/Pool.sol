@@ -28,6 +28,10 @@ contract Pool is ReentrancyGuard{
     mapping (address => DepositRecord []) private deposits;
     mapping (address => uint256) private depositCounts;
     mapping (address => uint256) private balance;
+    mapping (address=>uint256) private totalDeposits;
+    mapping (address=>uint256) private totalUelpReceived;
+    address [] depositors;
+
     mapping (address=>SwapRecord []) swaps;
 
 
@@ -93,14 +97,13 @@ contract Pool is ReentrancyGuard{
         );
     }
 
-
-
     function updateStatesOnDeposit
     (
         address _depositor,
         string memory _tokenStr,
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _uelp
     ) 
     public 
     onlyFacade {
@@ -108,12 +111,16 @@ contract Pool is ReentrancyGuard{
         DepositRecord memory record = DepositRecord ({
             depositor: _depositor,
             amount: _amount,
+            uelp: _uelp,
             timeStamp: time
         });
         
         deposits [_token].push (record);
         depositCounts [_token] += 1;
         balance [_token] += _amount;
+        totalDeposits [_depositor] += _amount;
+        totalUelpReceived [_depositor] += _uelp;
+        depositors.push (_depositor);
         
         emit TokenDepositedToPool (_tokenStr, _token, _depositor, _amount, depositCounts [_token], time);
     }
@@ -135,4 +142,7 @@ contract Pool is ReentrancyGuard{
         facade = IDex (_idexAddress);
     }
 
-}
+    function getBalance (address _token) public view returns (uint256 ){
+        return IERC20 (_token).balanceOf (address (this));
+    } 
+} 
