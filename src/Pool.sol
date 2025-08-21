@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {DepositRecord, SwapRecord} from "./Shared.sol";
+import {LiquidityRecord, SwapRecord} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IDex} from "./IDex.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
@@ -25,12 +25,18 @@ contract Pool is ReentrancyGuard{
     IDex private facade;
 
     address immutable i_owner;
-    mapping (address => DepositRecord []) private deposits;
+    mapping (address => LiquidityRecord []) private deposits; // token to deposits
+    mapping (address => LiquidityRecord []) private withdrawals; // token to withdrawals
+    
     mapping (address => uint256) private depositCounts;
-    mapping (address => uint256) private balance;
+    mapping (address => uint256) private withdrawCounts;
+    mapping (address => uint256) private balance; 
     mapping (address=>uint256) private totalDeposits;
     mapping (address=>uint256) private totalUelpReceived;
-    address [] depositors;
+    address [] depositors; // token to deposits
+    address [] withdawers;
+    
+    mapping (address => uint256) lastWithdrawTime;
 
     mapping (address=>SwapRecord []) swaps;
 
@@ -108,8 +114,8 @@ contract Pool is ReentrancyGuard{
     public 
     onlyFacade {
         uint256 time = block.timestamp;
-        DepositRecord memory record = DepositRecord ({
-            depositor: _depositor,
+        LiquidityRecord memory record = LiquidityRecord ({
+            token: _token,
             amount: _amount,
             uelp: _uelp,
             timeStamp: time
@@ -125,8 +131,23 @@ contract Pool is ReentrancyGuard{
         emit TokenDepositedToPool (_tokenStr, _token, _depositor, _amount, depositCounts [_token], time);
     }
 
-    function transferToSwapper(
-        address _swapper,
+    function updateStatesOnWithdrawal
+    (
+        address _depositor,
+        string memory _tokenStr,
+        address _token,
+        uint256 _amount,
+        uint256 _uelp
+    ) 
+    public 
+    onlyFacade {
+
+    }
+
+
+
+    function transferTo(
+        address _to,
         address _token,
         uint256 _amount
     ) 
@@ -134,7 +155,7 @@ contract Pool is ReentrancyGuard{
     onlyFacade
     nonReentrant
     returns (bool){
-        bool success = IERC20(_token).transfer (_swapper, _amount);
+        bool success = IERC20(_token).transfer (_to, _amount);
         return success;
     }
 
@@ -144,5 +165,9 @@ contract Pool is ReentrancyGuard{
 
     function getBalance (address _token) public view returns (uint256 ){
         return IERC20 (_token).balanceOf (address (this));
+    } 
+
+    function getLastWithdrawTime (address _provider) public view returns (uint256 ){
+        return lastWithdrawTime [_provider];
     } 
 } 

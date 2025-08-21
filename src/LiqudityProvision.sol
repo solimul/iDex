@@ -4,6 +4,7 @@ pragma solidity 0.8.30;
 import {BabylonianLib} from "./libs/BabylonianLib.sol";
 import {IDex} from "./IDex.sol";
 
+import {TRILLION_WEI} from "./Shared.sol";
 
 
 contract LiqudityProvision {
@@ -11,7 +12,6 @@ contract LiqudityProvision {
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
     error error_OnlyFacadeCanAccessThisFunction (address facade, address sender);
 
-    uint256 private minimumLiquidity;
     mapping (address => uint256) private totalUELP;
     address [] private lpProviders;
     address private immutable iOwner;
@@ -29,8 +29,7 @@ contract LiqudityProvision {
         revert error_OnlyOwnerCanAccessThisFunction (iOwner, msg.sender);
         _;
     }
-    constructor (uint256 _minimumLiquidity) {
-        minimumLiquidity = _minimumLiquidity;
+    constructor () {
         iOwner = msg.sender;
     }
 
@@ -55,13 +54,16 @@ contract LiqudityProvision {
         bool _seeded
     ) 
     public 
-    view 
+    pure 
     returns (uint256 lpToMint){
+        uint256 scaledUSDC = _usdc * TRILLION_WEI;
+
         if (!_seeded) {
-            lpToMint = BabylonianLib.sqrt (_usdc*_eth) - minimumLiquidity;
+            lpToMint = BabylonianLib.sqrt (scaledUSDC*_eth);
         }
         else {
-            uint256 usdcFraction = (_usdc * _tokenTotalSupply) / _usdcReserve;
+            uint256 scaledUSDCReserve =  _usdcReserve * TRILLION_WEI;
+            uint256 usdcFraction = (scaledUSDC * _tokenTotalSupply) / scaledUSDCReserve;
             uint256 ethFraction = (_eth * _tokenTotalSupply) / _ethReserve;
             lpToMint = usdcFraction > ethFraction ? ethFraction : usdcFraction;
         }
@@ -80,6 +82,4 @@ contract LiqudityProvision {
     returns (uint256) {
         return totalUELP [_provider];
     }
-
-
 }

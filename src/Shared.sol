@@ -9,13 +9,14 @@ string constant LPTOKEN_SYMBOL = "UELP";
 uint256 constant TRILLION_WEI = 1e12;
 uint256 constant WETH_WEI = 10e18;
 uint256 constant USDC_WEI = 10e6;
+uint256 constant HUNDRED = 100;
 
 
-struct DepositRecord {
-    address depositor;
+struct LiquidityRecord {
+    address token;
     uint256 amount;
-    uint256 timeStamp;
     uint256 uelp;
+    uint256 timeStamp;
 }
 
 struct SwapRecord {
