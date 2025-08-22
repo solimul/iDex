@@ -45,6 +45,10 @@ contract IDex is ReentrancyGuard {
     error error_WithdrawalRequestTooEarly(uint256 timeSinceLast, uint256 requiredWindow);
     error error_InternalToExternalTransferFailed ();
     error error_UELPBalanceTooLow ();
+    error error_InvalidLiquidityProvisionAddress ();
+    error error_InvalidMyERC20Address ();
+    error error_InvalidPoolAddress ();
+    error error_UelpAmountIsZero ();
 
 
     bool public seeded;
@@ -66,6 +70,9 @@ contract IDex is ReentrancyGuard {
     MyERC20 private merc20;
 
     mapping (string => address) public tokenMap;
+    address immutable i_usdcContract;
+    address immutable i_wethContract;
+
     address immutable public i_owner;
     
     Params private params;
@@ -135,6 +142,24 @@ contract IDex is ReentrancyGuard {
             _;
     }
 
+    modifier liquidityProvisionIsSet() {
+        if (address(liqudityProvision) == address(0))
+            revert error_InvalidLiquidityProvisionAddress();
+        _;
+    }
+
+    modifier lpTokenIsSet() {
+        if (address(merc20) == address(0))
+            revert error_InvalidMyERC20Address();
+        _;
+    }
+
+    modifier poolIsSet() {
+        if (address(pool) == address(0))
+            revert error_InvalidPoolAddress();
+        _;
+    }
+
 
     constructor 
     (
@@ -157,6 +182,9 @@ contract IDex is ReentrancyGuard {
         params.withdrawCooldown = _withdrawCooldown;
         params.swapFeePct = _swapFeePct;
         params.protocolFeePct = _protocolFeePct;
+
+        i_usdcContract = tokenMap[USDC_STR];
+        i_wethContract = tokenMap[WETH_STR];
     }
     
 
@@ -167,6 +195,7 @@ contract IDex is ReentrancyGuard {
         string memory _tokenInString,
         string memory _tokenOutString
     ) external
+    poolIsSet
     validSender
     validTokens (_tokenInString)
     validTokens (_tokenOutString)
@@ -232,9 +261,21 @@ contract IDex is ReentrancyGuard {
        uint256 _eth 
     ) 
     external 
+    liquidityProvisionIsSet
+    lpTokenIsSet
+    poolIsSet
     onlyOwner 
     checkNotSeeded {
-        uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);        
+        uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
+        // check
+        if (uelp == 0)
+            revert error_UelpAmountIsZero ();
+        
+        //effect
+        seeded = true;
+        liqudityProvision.updateLiquidityRecord (msg.sender, uelp);     
+        
+        // Interactions (+ effects)
         addLiquidityFrom( msg.sender, USDC_STR, _usdc, uelp);
         addLiquidityFrom( msg.sender, WETH_STR, _eth, uelp);
         uint256 supply0 = merc20.totalSupply();
@@ -247,9 +288,8 @@ contract IDex is ReentrancyGuard {
         uint256 supply1 = merc20.totalSupply();
         if (supply1 != supply0 + uelp)
             revert error_TotaSupplyMismatchAfterMinting ();
-        seeded = true;
         
-        emit LiquidityDepositDone (msg.sender, _usdc, _eth , tokenMap [USDC_STR], tokenMap [WETH_STR]);
+        emit LiquidityDepositDone (msg.sender, _usdc, _eth , i_usdcContract, i_wethContract);
     }
 
     function supplyLiquidity 
@@ -257,27 +297,35 @@ contract IDex is ReentrancyGuard {
         uint256 _usdc, 
         uint256 _eth
     )
+    liquidityProvisionIsSet
+    poolIsSet
+    lpTokenIsSet
     rateIsGood (_usdc, _eth)
     seedingIsDone
     external {
 
-        uint256 usdcReserve = pool.getBalance(tokenMap [USDC_STR]);
-        uint256 ethReserve = pool.getBalance(tokenMap [WETH_STR]);
+        uint256 usdcReserve = pool.getBalance(i_usdcContract);
+        uint256 ethReserve = pool.getBalance(i_wethContract);
         uint256 totalUelpSupply = merc20.totalSupply();
 
         uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
-
+        // check
+        if (uelp == 0) 
+            revert error_UelpAmountIsZero();
+        //Effect
         liqudityProvision.updateLiquidityRecord(msg.sender, uelp);
+        // Interactions (+effect)
         addLiquidityFrom(msg.sender, USDC_STR, _usdc, uelp);
         addLiquidityFrom(msg.sender, WETH_STR, _eth, uelp);
 
-        
         merc20.mint (msg.sender, uelp);
         
-        emit LiquidityDepositDone (msg.sender, _usdc, _eth , tokenMap [USDC_STR], tokenMap [WETH_STR]);
+        emit LiquidityDepositDone (msg.sender, _usdc, _eth , i_usdcContract, i_wethContract);
     }
 
     function withdrawLiquidity (uint256 _uelp) 
+    poolIsSet
+    lpTokenIsSet
     external {
         uint256 uelpBalance = merc20.balanceOf(msg.sender);
         if (uelpBalance == 0)
@@ -310,8 +358,8 @@ contract IDex is ReentrancyGuard {
     }
 
     function viewProtocolRewardBalance () external view returns (uint256 usdc, uint256 eth) {
-        usdc = protocolReward.viewProtocolRewardBalance (tokenMap [USDC_STR]);
-        eth = protocolReward.viewProtocolRewardBalance (tokenMap [WETH_STR]);
+        usdc = protocolReward.viewProtocolRewardBalance (i_usdcContract);
+        eth = protocolReward.viewProtocolRewardBalance (i_wethContract);
     }
 
     function withdrawLiquidtyTo 
@@ -320,7 +368,8 @@ contract IDex is ReentrancyGuard {
         string memory _tokenStr,
         uint256 _share,
         uint256 _uelp
-    ) 
+    )
+    poolIsSet 
     internal {
         IERC20 token = IERC20 (tokenMap [_tokenStr]);
         uint256 balance0 = token.balanceOf(address (pool));
@@ -345,6 +394,7 @@ contract IDex is ReentrancyGuard {
         uint256 _uelp
     ) 
     internal 
+    poolIsSet
     hasApproval (_from, _tokenStr,  _amount)
     addressHasEnoughBalance (_from, _tokenStr, _amount){
         IERC20 token = IERC20 (tokenMap [_tokenStr]);
@@ -365,8 +415,8 @@ contract IDex is ReentrancyGuard {
     }
 
     function getPoolExchangeRate () public view returns (uint256) {
-        uint256 usdcBalance = IERC20 (tokenMap [USDC_STR]).balanceOf (address (pool));
-        uint256 ethBalance = IERC20 (tokenMap [WETH_STR]).balanceOf (address (pool));
+        uint256 usdcBalance = IERC20 (i_usdcContract).balanceOf (address (pool));
+        uint256 ethBalance = IERC20 (i_wethContract).balanceOf (address (pool));
         if (ethBalance == 0)
             revert error_NoETHBalance ();
         uint256 scaledUSDCBalance = usdcBalance * TRILLION_WEI;

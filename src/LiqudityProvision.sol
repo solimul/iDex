@@ -11,6 +11,8 @@ contract LiqudityProvision {
 
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
     error error_OnlyFacadeCanAccessThisFunction (address facade, address sender);
+    error error_BadReservesOrSupply(uint256 usdcReserve, uint256 ethReserve, uint256 tokenTotalSupply);
+
 
     mapping (address => uint256) private totalUELP;
     address [] private lpProviders;
@@ -27,6 +29,20 @@ contract LiqudityProvision {
     modifier onlyOwner () {
     if (msg.sender != iOwner) 
         revert error_OnlyOwnerCanAccessThisFunction (iOwner, msg.sender);
+        _;
+    }
+
+    modifier validReservesAndSupply(
+        bool _seeded,
+        uint256 _usdcReserve,
+        uint256 _ethReserve,
+        uint256 _tokenTotalSupply
+    ) {
+        if (_seeded == true) {
+            if (_usdcReserve == 0 || _ethReserve == 0 || _tokenTotalSupply == 0) {
+                revert error_BadReservesOrSupply(_usdcReserve, _ethReserve, _tokenTotalSupply);
+            }
+        }
         _;
     }
     constructor () {
@@ -52,7 +68,8 @@ contract LiqudityProvision {
         uint256 _ethReserve,
         uint256 _tokenTotalSupply,
         bool _seeded
-    ) 
+    )
+    validReservesAndSupply(_seeded, _usdcReserve, _ethReserve, _tokenTotalSupply)
     public 
     pure 
     returns (uint256 lpToMint){
