@@ -87,7 +87,7 @@ contract LiqudityProvision {
     }
 
     function setContractReferences (address _idexAddress) external onlyOwner(){
-        facade = IDex (_idexAddress);
+        facade = IDex (payable (_idexAddress));
     }
 
     function getUELPByProvider 

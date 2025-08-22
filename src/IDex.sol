@@ -38,6 +38,7 @@ contract IDex is ReentrancyGuard {
     event LiquidityWithdrawlDone (address indexed provider);
     event ActivitiesPaused(uint256 until, string reason);
     event ActivitiesUnpaused ();
+    event NativeETHReceived (address from, uint256 amount);
 
     
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
@@ -69,7 +70,9 @@ contract IDex is ReentrancyGuard {
     error error_ActivitiesPausedUntil(uint256 until);
     error error_InvalidPauseDuration(uint256 asked, uint256 max);
 
-
+    error error_PercentageOutOfRange(string field, uint256 value, uint256 max);
+    error error_MinLiquidityPpmTooHigh(uint256 value, uint256 max);
+    error error_WithdrawCooldownZero();
 
 
 
@@ -205,6 +208,28 @@ contract IDex is ReentrancyGuard {
     }
 
 
+    modifier validParamBounds
+    (
+        uint256 _minLiquidityPpm,
+        uint256 _maxWithdrawPct,
+        uint256 _withdrawCooldown,
+        uint256 _swapFeePct,
+        uint256 _protocolFeePct
+    ) {
+        if (_maxWithdrawPct > HUNDRED)
+            revert error_PercentageOutOfRange("maxWithdrawPct", _maxWithdrawPct, HUNDRED);
+        if (_swapFeePct > HUNDRED)
+            revert error_PercentageOutOfRange("swapFeePct", _swapFeePct, HUNDRED);
+        if (_protocolFeePct > HUNDRED)
+            revert error_PercentageOutOfRange("protocolFeePct", _protocolFeePct, HUNDRED);
+        if (_minLiquidityPpm > MILLION)
+            revert error_MinLiquidityPpmTooHigh(_minLiquidityPpm, MILLION);
+        if (_withdrawCooldown == 0)
+            revert error_WithdrawCooldownZero();
+        _;
+    }
+
+
     constructor 
     (
         address _netConfigAddress, 
@@ -214,7 +239,8 @@ contract IDex is ReentrancyGuard {
         uint256 _swapFeePct,
         uint256 _protocolFeePct,
         uint256 _maxPauseDuration
-    ) {
+    ) 
+    validParamBounds(_minLiquidityPpm, _maxWithdrawPct, _withdrawCooldown, _swapFeePct, _protocolFeePct) {
         config = NetworkConfig (_netConfigAddress);
         tokenMap [USDC_STR] = config.getUSDCContract ();
         tokenMap [WETH_STR] = config.getETHContract(); 
@@ -328,7 +354,8 @@ contract IDex is ReentrancyGuard {
     lpTokenIsSet
     poolIsSet
     onlyOwner 
-    checkNotSeeded {
+    checkNotSeeded 
+    nonReentrant {
         uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
         // check
         if (uelp == 0)
@@ -366,6 +393,7 @@ contract IDex is ReentrancyGuard {
     lpTokenIsSet
     rateIsGood (_usdc, _eth)
     seedingIsDone
+    nonReentrant
     external {
 
         uint256 usdcReserve = pool.getBalance(i_usdcContract);
@@ -392,6 +420,7 @@ contract IDex is ReentrancyGuard {
     poolIsSet
     lpTokenIsSet
     hasUELPApproval (msg.sender, _uelp)
+    nonReentrant
     external {
         uint256 uelpBalance = merc20.balanceOf(msg.sender);
         if (uelpBalance == 0)
@@ -420,7 +449,8 @@ contract IDex is ReentrancyGuard {
     ) 
     external
     activityOpen 
-    onlyOwner {
+    onlyOwner
+    nonReentrant {
         protocolReward.withdrawERC20Token(msg.sender, tokenMap [_tokenStr], _amount);
     }
 
@@ -478,7 +508,7 @@ contract IDex is ReentrancyGuard {
     }
 
     function setContractReferences (address _poolAddress, address _lpAddress, address payable _protocolReward) external onlyOwner(){
-        pool = Pool (_poolAddress);
+        pool = Pool (payable (_poolAddress));
         liqudityProvision = LiqudityProvision (_lpAddress);
         protocolReward =  ProtocolReward (_protocolReward);
     }
@@ -535,6 +565,28 @@ contract IDex is ReentrancyGuard {
     external { 
         pauseUntil = 0;
         emit ActivitiesUnpaused();
+    }
+
+    function quoteOutAmount 
+    (
+        uint256 _amountIn,
+        string memory _tokenInStr,
+        string memory _tokenOutStr
+    )
+    external 
+    view
+    poolIsSet 
+    returns (uint256) {
+        return pool.calculateOutAmount(_amountIn, tokenMap [_tokenInStr], tokenMap [_tokenOutStr]);
+    }
+
+
+    receive () external payable {
+        emit NativeETHReceived (msg.sender, msg.value);
+    }
+
+    fallback () external payable {
+        emit NativeETHReceived (msg.sender, msg.value);
     }
 
 

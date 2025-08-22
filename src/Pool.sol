@@ -18,7 +18,7 @@ contract Pool is ReentrancyGuard{
         uint256 timestamp
     );
 
-        event TokenWithdrawnFromPool(
+    event TokenWithdrawnFromPool(
         string indexed tokenStr,
         address indexed token,
         address indexed provider,
@@ -26,6 +26,9 @@ contract Pool is ReentrancyGuard{
         uint256 providerCounts,
         uint256 timestamp
     );
+
+    event NativeETHReceived (address from, uint256 amount);
+
 
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
     error error_OnlyFacadeContractCanAccessThisFunction (address owner, address sender);
@@ -204,7 +207,7 @@ contract Pool is ReentrancyGuard{
     }
 
     function setContractReferences (address _idexAddress) external onlyOwner(){
-        facade = IDex (_idexAddress);
+        facade = IDex (payable (_idexAddress));
     }
 
     function getBalance (address _token) public view returns (uint256 ){
@@ -217,6 +220,14 @@ contract Pool is ReentrancyGuard{
 
     function getSwapsCount () public view returns (uint256) {
         return swapsCount;
+    }
+
+    receive () external payable {
+        emit NativeETHReceived (msg.sender, msg.value);
+    }
+
+    fallback () external payable {
+        emit NativeETHReceived (msg.sender, msg.value);
     }
 
     

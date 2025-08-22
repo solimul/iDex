@@ -7,11 +7,14 @@ import {ProtocolFee, ProtocolFeeDetails, Context} from "./Shared.sol";
 
 
 contract ProtocolReward {
+    event NativeETHReceived (address from, uint256 amount);
+
     address immutable private iOwner;
     IDex private facade;
     mapping (address => ProtocolFeeDetails ) token2Fees;
     mapping (address => ProtocolFeeDetails) provider2FeesDetail;
     mapping (address => address []) token2Provides;
+    mapping (address => mapping (address =>uint256)) providerToFees; 
 
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
     error error_OnlyFacadeContractCanAccessThisFunction (address owner, address sender);
@@ -43,7 +46,7 @@ contract ProtocolReward {
 
 
     function setContractReferences (address _idexAddress) external onlyOwner(){
-        facade = IDex (_idexAddress);
+        facade = IDex (payable (_idexAddress));
     }
 
     function updateProtocolRewardStateOnSwap 
@@ -72,6 +75,7 @@ contract ProtocolReward {
         provider2FeesDetail [_from].fees.push (fees); 
 
         token2Provides [_token].push(_from);
+        providerToFees [_from] [_token] += _amount;
     }
 
     function withdrawERC20Token 
@@ -99,10 +103,12 @@ contract ProtocolReward {
     }
 
     receive () external payable {
-
+        emit NativeETHReceived (msg.sender, msg.value);
     }
 
     fallback () external payable {
-
+        emit NativeETHReceived (msg.sender, msg.value);
     }
+
+    
 }
