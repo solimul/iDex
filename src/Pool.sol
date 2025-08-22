@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {LiquidityRecord, SwapRecord} from "./Shared.sol";
+import {LiquidityRecord, SwapRecord, ProtocolFeeDetails} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IDex} from "./IDex.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
@@ -33,15 +33,17 @@ contract Pool is ReentrancyGuard{
     mapping (address => uint256) private balance; 
     mapping (address=>uint256) private totalDeposits;
     mapping (address=>uint256) private totalUelpReceived;
+    
     address [] depositors; // token to deposits
     address [] withdawers;
     
     mapping (address => uint256) lastWithdrawTime;
 
     mapping (address=>SwapRecord []) swaps;
+    mapping (address => uint256 []) inToken2SwapIDs;
 
-
-
+    uint256 private swapsCount;
+    uint256 private totalSwapFees;
 
 
     modifier onlyOwner () {
@@ -81,7 +83,8 @@ contract Pool is ReentrancyGuard{
         address _tokenIn, 
         address _tokenOut, 
         uint256 _amountIn, 
-        uint256 _amountOut
+        uint256 _amountOut,
+        uint256 _swapFee
     )
     external
     onlyFacade {
@@ -89,18 +92,24 @@ contract Pool is ReentrancyGuard{
         balance [_tokenIn] += _amountIn;
         balance [_tokenOut] -= _amountOut;
         uint256 time = block.timestamp;
+
         swaps [_tokenOut].push ( 
             SwapRecord 
             (
                 {
+                    id : swapsCount,
                     swapper : _swapper,
                     tokenIn : _tokenIn,
                     amountIn: _amountIn,
                     amountOut: _amountOut,
+                    swapFee: _swapFee,
                     timeStamp : time
                 }
             )
         );
+        inToken2SwapIDs [_tokenIn].push (swapsCount);
+        swapsCount += 1;
+        totalSwapFees += _swapFee;
     }
 
     function updateStatesOnDeposit
@@ -170,4 +179,8 @@ contract Pool is ReentrancyGuard{
     function getLastWithdrawTime (address _provider) public view returns (uint256 ){
         return lastWithdrawTime [_provider];
     } 
+
+    function getSwapsCount () public view returns (uint256) {
+        return swapsCount;
+    }
 } 

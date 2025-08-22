@@ -10,6 +10,13 @@ uint256 constant TRILLION_WEI = 1e12;
 uint256 constant WETH_WEI = 10e18;
 uint256 constant USDC_WEI = 10e6;
 uint256 constant HUNDRED = 100;
+uint256 constant MILLION = 1_000_000;
+
+enum Context {
+    PFeeDeposit,
+    SwapFeeDeposit
+}
+
 
 
 struct LiquidityRecord {
@@ -20,11 +27,32 @@ struct LiquidityRecord {
 }
 
 struct SwapRecord {
+    uint256 id;
     address swapper;
     address tokenIn;
     uint256 amountIn;
     uint256 amountOut;
+    uint256 swapFee;
     uint256 timeStamp;
+}
+
+struct ProtocolFeeDetails {
+    uint256 totalAmount;
+    ProtocolFee [] fees;
+}
+
+struct ProtocolFee {
+    uint256 swapId;
+    uint256 amount;
+    Context context;
+}
+
+struct Params {
+    uint256 minLiquidityPpm;
+    uint256 maxWithdrawPct;
+    uint256 withdrawCooldown;
+    uint256 swapFeePct;
+    uint256 protocolFeePct;
 }
 
 
