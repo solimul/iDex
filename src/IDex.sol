@@ -353,8 +353,8 @@ contract IDex is ReentrancyGuard {
         //Effect
         liqudityProvision.updateLiquidityRecord(msg.sender, uelp);
         // Interactions (+effect)
-        addLiquidityFrom(msg.sender, USDC_STR, _usdc, uelp);
-        addLiquidityFrom(msg.sender, WETH_STR, _eth, uelp);
+        addLiquidityFrom(msg.sender, USDC_STR, _usdc, uelp, true);
+        addLiquidityFrom(msg.sender, WETH_STR, _eth, uelp, false);
 
         merc20.mint (msg.sender, uelp);
         
@@ -378,8 +378,8 @@ contract IDex is ReentrancyGuard {
         if (block.timestamp - lastWithdrawn < params.withdrawCooldown)
             revert error_WithdrawalRequestTooEarly (block.timestamp - lastWithdrawn, params.withdrawCooldown);
 
-        withdrawLiquidtyTo (msg.sender, USDC_STR, sharePct, _uelp);
-        withdrawLiquidtyTo (msg.sender, WETH_STR, sharePct, _uelp);
+        withdrawLiquidtyTo (msg.sender, USDC_STR, sharePct, _uelp, true);
+        withdrawLiquidtyTo (msg.sender, WETH_STR, sharePct, _uelp, false);
 
         merc20.burnFrom (msg.sender, _uelp);
 
@@ -406,7 +406,8 @@ contract IDex is ReentrancyGuard {
         address _to,
         string memory _tokenStr,
         uint256 _share,
-        uint256 _uelp
+        uint256 _uelp,
+        bool _updateUelp
     )
     poolIsSet 
     internal {
@@ -414,7 +415,7 @@ contract IDex is ReentrancyGuard {
         uint256 balance0 = token.balanceOf(address (pool));
         uint256 amount = (balance0 * _share) / HUNDRED;
         
-        pool.updateStatesOnWithdrawal(_to, _tokenStr, address (token), amount, _uelp);
+        pool.updateStatesOnWithdrawal(_to, _tokenStr, address (token), amount, _uelp, _updateUelp);
 
         bool success = pool.transferTo (_to, address (token), amount);
         if (!success)
@@ -430,7 +431,8 @@ contract IDex is ReentrancyGuard {
         address _from,
         string memory _tokenStr, 
         uint256 _amount,
-        uint256 _uelp
+        uint256 _uelp,
+        bool _updateUelp
     ) 
     internal 
     poolIsSet
@@ -441,7 +443,7 @@ contract IDex is ReentrancyGuard {
         bool success = token.transferFrom(_from, address (pool), _amount);
         if (!success)
             revert error_ExternalToInternalTransferFailed (_from, address (pool), _tokenStr, address (token), _amount);
-        pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _uelp);
+        pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _uelp, _updateUelp);
         uint256 balance1 = token.balanceOf(address (pool));
         if (balance1 != balance0 + _amount)
             revert error_PostTransferBalanceMismatch ();

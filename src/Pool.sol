@@ -124,7 +124,7 @@ contract Pool is ReentrancyGuard{
         totalSwapFees += _swapFee;
     }
 
-    
+
 
     function updateStatesOnProvidence
     (
@@ -132,7 +132,8 @@ contract Pool is ReentrancyGuard{
         string memory _tokenStr,
         address _token,
         uint256 _amount,
-        uint256 _uelp
+        uint256 _uelp,
+        bool _updateUelp
     ) 
     public 
     onlyFacade {
@@ -147,7 +148,8 @@ contract Pool is ReentrancyGuard{
         providerCounts [_token] += 1;
         balance [_token] += _amount;
         tokenToTotalProvidenceByProviders [_provider] [_token] += _amount;
-        totalUelpReceived [_provider] += _uelp;
+        if (_updateUelp==true)
+            totalUelpReceived [_provider] += _uelp;
 
         providers[_token].push (_provider);
         depAddressToIndex [_provider] = providers[_token].length-1;
@@ -161,7 +163,8 @@ contract Pool is ReentrancyGuard{
         string memory _tokenStr,
         address _token,
         uint256 _amount,
-        uint256 _uelp
+        uint256 _uelp,
+        bool _updateUelp
     ) 
     public 
     onlyFacade {
@@ -176,7 +179,8 @@ contract Pool is ReentrancyGuard{
         withdrawals [_token].push (record);
         balance [_token] -= _amount;
         tokenToTotalProvidenceByProviders [_provider] [_token] -= _amount;
-        totalUelpReceived [_provider] -= _uelp;
+        if (_updateUelp == true)
+            totalUelpReceived [_provider] -= _uelp;
 
         emit TokenWithdrawnFromPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
 
