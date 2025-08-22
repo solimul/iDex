@@ -8,12 +8,22 @@ import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/Ree
 
 
 contract Pool is ReentrancyGuard{
-    event TokenDepositedToPool(
+
+    event TokenProvidedToPool(
         string indexed tokenStr,
         address indexed token,
-        address indexed depositor,
+        address indexed provider,
         uint256 amount,
-        uint256 depositCount,
+        uint256 providerCounts,
+        uint256 timestamp
+    );
+
+        event TokenWithdrawnFromPool(
+        string indexed tokenStr,
+        address indexed token,
+        address indexed provider,
+        uint256 amount,
+        uint256 providerCounts,
         uint256 timestamp
     );
 
@@ -25,18 +35,20 @@ contract Pool is ReentrancyGuard{
     IDex private facade;
 
     address immutable i_owner;
-    mapping (address => LiquidityRecord []) private deposits; // token to deposits
+    mapping (address => LiquidityRecord []) private providences; // token to providences
     mapping (address => LiquidityRecord []) private withdrawals; // token to withdrawals
     
-    mapping (address => uint256) private depositCounts;
+    mapping (address => uint256) private providerCounts;
     mapping (address => uint256) private withdrawCounts;
     mapping (address => uint256) private balance; 
-    mapping (address=>uint256) private totalDeposits;
+    mapping (address=> mapping (address => uint256)) private tokenToTotalProvidenceByProviders;
     mapping (address=>uint256) private totalUelpReceived;
     
-    address [] depositors; // token to deposits
-    address [] withdawers;
-    
+    mapping (address => address []) providers; // token to providers
+    mapping (address => uint256) depAddressToIndex;
+    mapping (address => address []) withdrawers; // token to withdrawers
+    mapping (address => uint256) withdrawersAddressToIndex;
+
     mapping (address => uint256) lastWithdrawTime;
 
     mapping (address=>SwapRecord []) swaps;
@@ -112,9 +124,11 @@ contract Pool is ReentrancyGuard{
         totalSwapFees += _swapFee;
     }
 
-    function updateStatesOnDeposit
+    
+
+    function updateStatesOnProvidence
     (
-        address _depositor,
+        address _provider,
         string memory _tokenStr,
         address _token,
         uint256 _amount,
@@ -130,19 +144,20 @@ contract Pool is ReentrancyGuard{
             timeStamp: time
         });
         
-        deposits [_token].push (record);
-        depositCounts [_token] += 1;
+        providerCounts [_token] += 1;
         balance [_token] += _amount;
-        totalDeposits [_depositor] += _amount;
-        totalUelpReceived [_depositor] += _uelp;
-        depositors.push (_depositor);
+        tokenToTotalProvidenceByProviders [_provider] [_token] += _amount;
+        totalUelpReceived [_provider] += _uelp;
+
+        providers[_token].push (_provider);
+        depAddressToIndex [_provider] = providers[_token].length-1;
         
-        emit TokenDepositedToPool (_tokenStr, _token, _depositor, _amount, depositCounts [_token], time);
+        emit TokenProvidedToPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
     }
 
     function updateStatesOnWithdrawal
     (
-        address _depositor,
+        address _provider,
         string memory _tokenStr,
         address _token,
         uint256 _amount,
@@ -150,6 +165,20 @@ contract Pool is ReentrancyGuard{
     ) 
     public 
     onlyFacade {
+        uint256 time = block.timestamp;
+        LiquidityRecord memory record = LiquidityRecord ({
+            token: _token,
+            amount: _amount,
+            uelp: _uelp,
+            timeStamp: time
+        });
+
+        withdrawals [_token].push (record);
+        balance [_token] -= _amount;
+        tokenToTotalProvidenceByProviders [_provider] [_token] -= _amount;
+        totalUelpReceived [_provider] -= _uelp;
+
+        emit TokenWithdrawnFromPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
 
     }
 
@@ -183,4 +212,8 @@ contract Pool is ReentrancyGuard{
     function getSwapsCount () public view returns (uint256) {
         return swapsCount;
     }
+
+    
 } 
+
+

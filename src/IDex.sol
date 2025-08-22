@@ -7,7 +7,7 @@ import {LiqudityProvision} from "./LiqudityProvision.sol";
 import {ProtocolReward} from "./ProtocolReward.sol";
 
 
-import {Params, ProtocolFee, USDC_STR, WETH_STR, TRILLION_WEI, LPTOKEN_NAME, LPTOKEN_SYMBOL, HUNDRED, MILLION} from "./Shared.sol";
+import {Params, ProtocolFee, USDC_STR, WETH_STR, TRILLION_WEI, LPTOKEN_NAME, LPTOKEN_SYMBOL, HUNDRED, TEN_K , MILLION} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MyERC20} from "../mocks/MyERC20.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
@@ -32,7 +32,6 @@ contract IDex is ReentrancyGuard {
     error error_ExternalToInternalTransferFailed (address from, address to, string token, address tokenAddress, uint256 _amount);
     error error_PostTransferBalanceMismatch ();
     error error_InvalidToken (string givenToken, string acceptedTokens);
-    error error_SlippageTooHigh ();
     error error_SameTokenCannotBeExchanged ();
     error error_SenderIsNotValid ();
     error error_NoETHBalance ();
@@ -49,6 +48,11 @@ contract IDex is ReentrancyGuard {
     error error_InvalidMyERC20Address ();
     error error_InvalidPoolAddress ();
     error error_UelpAmountIsZero ();
+    error error_SlippageBpsTooHigh (uint256 slippageBps);
+    error error_BadQuote ();
+    error error_SlippageTooHigh (uint256 quotedOutAmount, uint256 outAmount);
+    error error_UELPAllowanceTooLow(uint256 have, uint256 need);
+
 
 
     bool public seeded;
@@ -59,6 +63,8 @@ contract IDex is ReentrancyGuard {
         address indexed tokenOut,
         uint256 amountIn,
         uint256 amountOut,
+        uint256 swapFee,
+        uint256 protocolFee,
         uint256 timestamp
     );
 
@@ -160,6 +166,25 @@ contract IDex is ReentrancyGuard {
         _;
     }
 
+    modifier slippageBpsHigh (uint256 slippageBps) {
+         if (slippageBps > TEN_K) 
+            revert error_SlippageBpsTooHigh (slippageBps);
+         _;
+    }
+
+    modifier badQuote (uint256 _quote) {
+        if (_quote == 0)
+            revert error_BadQuote ();
+        _;
+    }
+
+    modifier hasUELPApproval(address from, uint256 amount) {
+        uint256 a = merc20.allowance(from, address(this));
+        if (a < amount) 
+            revert error_UELPAllowanceTooLow(a, amount);
+        _;
+    }
+
 
     constructor 
     (
@@ -190,8 +215,9 @@ contract IDex is ReentrancyGuard {
 
 
     function swap(
-        uint256 _amount,
-        uint256 slippagePercentage,
+        uint256 _amountIn,
+        uint256 _quotedOut,
+        uint256 _slippageBps,
         string memory _tokenInString,
         string memory _tokenOutString
     ) external
@@ -200,40 +226,47 @@ contract IDex is ReentrancyGuard {
     validTokens (_tokenInString)
     validTokens (_tokenOutString)
     checkIfSameToken(_tokenInString, _tokenOutString)
-    hasApproval (msg.sender, _tokenInString,  _amount)
-    addressHasEnoughBalance (msg.sender, _tokenInString, _amount)
+    hasApproval (msg.sender, _tokenInString,  _amountIn)
+    addressHasEnoughBalance (msg.sender, _tokenInString, _amountIn)
+    slippageBpsHigh(_slippageBps)
+    badQuote (_quotedOut)
     nonReentrant {
-        // check
+        /**
+        ** check 
+        **/
         IERC20 tokenIn = IERC20 (tokenMap [_tokenInString]);
         IERC20 tokenOut =   IERC20 (tokenMap [_tokenOutString]);
 
-        uint256 swapFee = (_amount * params.swapFeePct) / HUNDRED;
-        uint256 amountIn = _amount - swapFee;
+        uint256 swapFee = (_amountIn * params.swapFeePct) / HUNDRED;
+        uint256 amountIn = _amountIn - swapFee;
 
         uint256 protocolFee = (swapFee * params.protocolFeePct) / HUNDRED;
-        swapFee -=  protocolFee;
-
-
 
         uint256 outAmount = pool.calculateOutAmount(amountIn, address (tokenIn),address (tokenOut));
         
-        uint256 minAmountOut = outAmount - ((outAmount * slippagePercentage) / HUNDRED);
-        if (outAmount <= minAmountOut)
-            revert error_SlippageTooHigh ();
+        uint256 minAmount = (_quotedOut *  (TEN_K - _slippageBps)) / TEN_K;
+        if (outAmount < minAmount)
+            revert error_SlippageTooHigh (_quotedOut, minAmount);
+        
 
 
        uint256 outTokenBalance0 = tokenOut.balanceOf (address (pool));
 
         if (outTokenBalance0 < outAmount)
-            revert error_DoesNotHaveEnoughBalance (address (pool), _tokenOutString, outTokenBalance0, amountIn);
+            revert error_DoesNotHaveEnoughBalance (address (pool), _tokenOutString, outTokenBalance0, outAmount);
  
 
-        //effect
-        uint256  swapId = pool.getSwapsCount () + 1;
-        protocolReward.updateProtocolRewardStateOnSwap (msg.sender, address (tokenIn), protocolFee, swapId);
+        /**
+        ** effect 
+        **/
+        swapFee -=  protocolFee;
+        uint256  nextSwapId = pool.getSwapsCount () + 1;
+        protocolReward.updateProtocolRewardStateOnSwap (msg.sender, address (tokenIn), protocolFee, nextSwapId);
         pool.updateStatesOnSwap (msg.sender, address (tokenIn), address (tokenOut), amountIn, outAmount, swapFee);
 
-        //interaction
+        /**
+        ** check 
+        **/
 
         // transfer amountIn and swapFee to pool       
         bool success = tokenIn.transferFrom(msg.sender, address (pool), amountIn + swapFee);
@@ -242,16 +275,21 @@ contract IDex is ReentrancyGuard {
 
         // transfer part of the swapFee to the protocol reward contract
         success = tokenIn.transferFrom(msg.sender, address (protocolReward), protocolFee);
+        if (!success)
+            revert error_ExternalToInternalTransferFailed (msg.sender, address (protocolReward), _tokenInString, address (tokenIn), protocolFee);
 
         // payback outAmount to the swapper
-        pool.transferTo (msg.sender, address (tokenOut), outAmount);
-        
+        success = pool.transferTo (msg.sender, address (tokenOut), outAmount);
+        if (!success) 
+        revert error_InternalToExternalTransferFailed();
+
         uint256 outTokenBalance1 = tokenOut.balanceOf (address (pool));
+
         if (outTokenBalance1 != outTokenBalance0 - outAmount)
             revert error_PostTransferBalanceMismatch ();
 
 
-        emit SwapDone (msg.sender, address (tokenIn), address (tokenOut), _amount, outAmount, block.timestamp);    
+        emit SwapDone (msg.sender, address (tokenIn), address (tokenOut), _amountIn, outAmount, swapFee, protocolFee,block.timestamp);    
     }
 
 
@@ -326,6 +364,7 @@ contract IDex is ReentrancyGuard {
     function withdrawLiquidity (uint256 _uelp) 
     poolIsSet
     lpTokenIsSet
+    hasUELPApproval (msg.sender, _uelp)
     external {
         uint256 uelpBalance = merc20.balanceOf(msg.sender);
         if (uelpBalance == 0)
@@ -402,7 +441,7 @@ contract IDex is ReentrancyGuard {
         bool success = token.transferFrom(_from, address (pool), _amount);
         if (!success)
             revert error_ExternalToInternalTransferFailed (_from, address (pool), _tokenStr, address (token), _amount);
-        pool.updateStatesOnDeposit (_from, _tokenStr, address (token), _amount, _uelp);
+        pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _uelp);
         uint256 balance1 = token.balanceOf(address (pool));
         if (balance1 != balance0 + _amount)
             revert error_PostTransferBalanceMismatch ();

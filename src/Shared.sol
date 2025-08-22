@@ -11,6 +11,7 @@ uint256 constant WETH_WEI = 10e18;
 uint256 constant USDC_WEI = 10e6;
 uint256 constant HUNDRED = 100;
 uint256 constant MILLION = 1_000_000;
+uint256 constant TEN_K = 10_000;
 
 enum Context {
     PFeeDeposit,
@@ -25,6 +26,7 @@ struct LiquidityRecord {
     uint256 uelp;
     uint256 timeStamp;
 }
+
 
 struct SwapRecord {
     uint256 id;
