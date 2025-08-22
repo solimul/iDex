@@ -181,6 +181,8 @@ contract Pool is ReentrancyGuard{
         tokenToTotalProvidenceByProviders [_provider] [_token] -= _amount;
         if (_updateUelp == true)
             totalUelpReceived [_provider] -= _uelp;
+        
+        lastWithdrawTime [_provider] = time;
 
         emit TokenWithdrawnFromPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
 

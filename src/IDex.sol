@@ -23,7 +23,21 @@ contract IDex is ReentrancyGuard {
         address wethToken
     );
 
+    event SwapDone (
+        address indexed swapper,
+        address indexed tokenIn,
+        address indexed tokenOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 swapFee,
+        uint256 protocolFee,
+        uint256 timestamp
+    );
+
+
     event LiquidityWithdrawlDone (address indexed provider);
+    event ActivitiesPaused(uint256 until, string reason);
+    event ActivitiesUnpaused ();
 
     
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
@@ -52,22 +66,17 @@ contract IDex is ReentrancyGuard {
     error error_BadQuote ();
     error error_SlippageTooHigh (uint256 quotedOutAmount, uint256 outAmount);
     error error_UELPAllowanceTooLow(uint256 have, uint256 need);
+    error error_ActivitiesPausedUntil(uint256 until);
+    error error_InvalidPauseDuration(uint256 asked, uint256 max);
+
+
 
 
 
     bool public seeded;
+    
 
-    event SwapDone (
-        address indexed swapper,
-        address indexed tokenIn,
-        address indexed tokenOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        uint256 swapFee,
-        uint256 protocolFee,
-        uint256 timestamp
-    );
-
+    
 
     NetworkConfig private config;
     Pool private pool;
@@ -82,6 +91,9 @@ contract IDex is ReentrancyGuard {
     address immutable public i_owner;
     
     Params private params;
+
+    uint256 maxPauseDuration;
+    uint256 pauseUntil;
 
     modifier onlyOwner () {
     if (msg.sender != i_owner) 
@@ -185,6 +197,13 @@ contract IDex is ReentrancyGuard {
         _;
     }
 
+    modifier activityOpen () {
+        if (block.timestamp < pauseUntil) {
+            revert error_ActivitiesPausedUntil(pauseUntil);
+        }
+        _;
+    }
+
 
     constructor 
     (
@@ -193,7 +212,8 @@ contract IDex is ReentrancyGuard {
         uint256 _maxWithdrawPct, 
         uint256 _withdrawCooldown,
         uint256 _swapFeePct,
-        uint256 _protocolFeePct
+        uint256 _protocolFeePct,
+        uint256 _maxPauseDuration
     ) {
         config = NetworkConfig (_netConfigAddress);
         tokenMap [USDC_STR] = config.getUSDCContract ();
@@ -210,6 +230,9 @@ contract IDex is ReentrancyGuard {
 
         i_usdcContract = tokenMap[USDC_STR];
         i_wethContract = tokenMap[WETH_STR];
+
+        pauseUntil = 0;
+        maxPauseDuration = _maxPauseDuration;
     }
     
 
@@ -221,6 +244,7 @@ contract IDex is ReentrancyGuard {
         string memory _tokenInString,
         string memory _tokenOutString
     ) external
+    activityOpen
     poolIsSet
     validSender
     validTokens (_tokenInString)
@@ -299,6 +323,7 @@ contract IDex is ReentrancyGuard {
        uint256 _eth 
     ) 
     external 
+    activityOpen
     liquidityProvisionIsSet
     lpTokenIsSet
     poolIsSet
@@ -314,8 +339,8 @@ contract IDex is ReentrancyGuard {
         liqudityProvision.updateLiquidityRecord (msg.sender, uelp);     
         
         // Interactions (+ effects)
-        addLiquidityFrom( msg.sender, USDC_STR, _usdc, uelp);
-        addLiquidityFrom( msg.sender, WETH_STR, _eth, uelp);
+        addLiquidityFrom( msg.sender, USDC_STR, _usdc, uelp, true);
+        addLiquidityFrom( msg.sender, WETH_STR, _eth, uelp, false);
         uint256 supply0 = merc20.totalSupply();
         
         // TODO: change this to a fixed 'minimumLiquidity'?
@@ -335,6 +360,7 @@ contract IDex is ReentrancyGuard {
         uint256 _usdc, 
         uint256 _eth
     )
+    activityOpen
     liquidityProvisionIsSet
     poolIsSet
     lpTokenIsSet
@@ -361,7 +387,8 @@ contract IDex is ReentrancyGuard {
         emit LiquidityDepositDone (msg.sender, _usdc, _eth , i_usdcContract, i_wethContract);
     }
 
-    function withdrawLiquidity (uint256 _uelp) 
+    function withdrawLiquidity (uint256 _uelp)
+    activityOpen 
     poolIsSet
     lpTokenIsSet
     hasUELPApproval (msg.sender, _uelp)
@@ -391,7 +418,8 @@ contract IDex is ReentrancyGuard {
         string memory _tokenStr, 
         uint256 _amount
     ) 
-    external 
+    external
+    activityOpen 
     onlyOwner {
         protocolReward.withdrawERC20Token(msg.sender, tokenMap [_tokenStr], _amount);
     }
@@ -486,5 +514,28 @@ contract IDex is ReentrancyGuard {
     onlyOwner {
         merc20 = new MyERC20 (_name, _symbol);
     }
+
+    function pauseActivity
+    (
+        uint256 _duration, 
+        string calldata _reason
+    ) 
+    external
+    activityOpen 
+    onlyOwner {
+    if (_duration == 0 || _duration > maxPauseDuration) {
+        revert error_InvalidPauseDuration(_duration, maxPauseDuration);
+        }
+        pauseUntil = block.timestamp + _duration;
+        emit ActivitiesPaused(pauseUntil, _reason);
+    }
+
+    function unpauseAllActivities()  
+    onlyOwner
+    external { 
+        pauseUntil = 0;
+        emit ActivitiesUnpaused();
+    }
+
 
 }
