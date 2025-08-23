@@ -147,6 +147,8 @@ contract Pool is ReentrancyGuard{
             uelp: _uelp,
             timeStamp: time
         });
+
+        providences [_token].push (record);
         
         providerCounts [_token] += 1;
         balance [_token] += _amount;
