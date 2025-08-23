@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {NetworkConfig} from "./NetworkConfig.sol";
 import {Pool} from "./Pool.sol";
-import {LiqudityProvision} from "./LiqudityProvision.sol";
+import {LiquidityProvision} from "./LiquidityProvision.sol";
 import {ProtocolReward} from "./ProtocolReward.sol";
 
 
-import {Params, ProtocolFee, USDC_STR, WETH_STR, TRILLION_WEI, LPTOKEN_NAME, LPTOKEN_SYMBOL, HUNDRED, TEN_K , MILLION} from "./Shared.sol";
+import {Params, ProtocolFee, USDC_STR, WETH_STR, TRILLION_WEI, HUNDRED, TEN_K , MILLION} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MyERC20} from "../mocks/MyERC20.sol";
 import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
@@ -54,11 +53,11 @@ contract IDex is ReentrancyGuard {
     error error_TotaSupplyMismatchAfterMinting ();
     error error_DepositRatioTooLow(uint256 userRate, uint256 poolRate);
     error error_PoolHasNotBeenSeddedYet ();
-    error error_OnlyUELPTokenHoldersCanAccessThisFunction ();
+    error error_OnlyLPTokenHoldersCanAccessThisFunction ();
     error error_WithdrawalShareExceedsLimit(uint256 requestedShare, uint256 maxAllowedShare);
     error error_WithdrawalRequestTooEarly(uint256 timeSinceLast, uint256 requiredWindow);
     error error_InternalToExternalTransferFailed ();
-    error error_UELPBalanceTooLow ();
+    error error_LPBalanceTooLow ();
     error error_InvalidLiquidityProvisionAddress ();
     error error_InvalidMyERC20Address ();
     error error_InvalidPoolAddress ();
@@ -66,7 +65,7 @@ contract IDex is ReentrancyGuard {
     error error_SlippageBpsTooHigh (uint256 slippageBps);
     error error_BadQuote ();
     error error_SlippageTooHigh (uint256 quotedOutAmount, uint256 outAmount);
-    error error_UELPAllowanceTooLow(uint256 have, uint256 need);
+    error error_LPAllowanceTooLow(uint256 have, uint256 need);
     error error_ActivitiesPausedUntil(uint256 until);
     error error_InvalidPauseDuration(uint256 asked, uint256 max);
 
@@ -81,9 +80,8 @@ contract IDex is ReentrancyGuard {
 
     
 
-    NetworkConfig private config;
     Pool private pool;
-    LiqudityProvision private liqudityProvision;
+    LiquidityProvision private liqudityProvision;
     ProtocolReward private protocolReward;
     MyERC20 private merc20;
 
@@ -193,10 +191,10 @@ contract IDex is ReentrancyGuard {
         _;
     }
 
-    modifier hasUELPApproval(address from, uint256 amount) {
+    modifier hasLPApproval(address from, uint256 amount) {
         uint256 a = merc20.allowance(from, address(this));
         if (a < amount) 
-            revert error_UELPAllowanceTooLow(a, amount);
+            revert error_LPAllowanceTooLow(a, amount);
         _;
     }
 
@@ -232,7 +230,8 @@ contract IDex is ReentrancyGuard {
 
     constructor 
     (
-        address _netConfigAddress, 
+        address _usdcToken,
+        address _ethToken,
         uint256 _minLiquidityPpm, 
         uint256 _maxWithdrawPct, 
         uint256 _withdrawCooldown,
@@ -241,11 +240,9 @@ contract IDex is ReentrancyGuard {
         uint256 _maxPauseDuration
     ) 
     validParamBounds(_minLiquidityPpm, _maxWithdrawPct, _withdrawCooldown, _swapFeePct, _protocolFeePct) {
-        config = NetworkConfig (_netConfigAddress);
-        tokenMap [USDC_STR] = config.getUSDCContract ();
-        tokenMap [WETH_STR] = config.getETHContract(); 
+        tokenMap [USDC_STR] = _usdcToken;
+        tokenMap [WETH_STR] = _ethToken;
         i_owner = msg.sender; 
-        createLPToken (LPTOKEN_NAME, LPTOKEN_SYMBOL);
         seeded = false;
 
         params.minLiquidityPpm = _minLiquidityPpm;
@@ -356,27 +353,27 @@ contract IDex is ReentrancyGuard {
     onlyOwner 
     checkNotSeeded 
     nonReentrant {
-        uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
+        uint256 lp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
         // check
-        if (uelp == 0)
+        if (lp == 0)
             revert error_UelpAmountIsZero ();
         
         //effect
         seeded = true;
-        liqudityProvision.updateLiquidityRecord (msg.sender, uelp);     
+        liqudityProvision.updateLiquidityRecord (msg.sender, lp);     
         
         // Interactions (+ effects)
-        addLiquidityFrom( msg.sender, USDC_STR, _usdc, uelp, true);
-        addLiquidityFrom( msg.sender, WETH_STR, _eth, uelp, false);
+        addLiquidityFrom( msg.sender, USDC_STR, _usdc, lp, true);
+        addLiquidityFrom( msg.sender, WETH_STR, _eth, lp, false);
         uint256 supply0 = merc20.totalSupply();
         
         // TODO: change this to a fixed 'minimumLiquidity'?
-        uint256 minLiquidity = (uelp * params.minLiquidityPpm) / MILLION;
-        merc20.mint (msg.sender, uelp - minLiquidity);
+        uint256 minLiquidity = (lp * params.minLiquidityPpm) / MILLION;
+        merc20.mint (msg.sender, lp - minLiquidity);
         merc20.mint (address (pool), minLiquidity);
 
         uint256 supply1 = merc20.totalSupply();
-        if (supply1 != supply0 + uelp)
+        if (supply1 != supply0 + lp)
             revert error_TotaSupplyMismatchAfterMinting ();
         
         emit LiquidityDepositDone (msg.sender, _usdc, _eth , i_usdcContract, i_wethContract);
@@ -400,44 +397,44 @@ contract IDex is ReentrancyGuard {
         uint256 ethReserve = pool.getBalance(i_wethContract);
         uint256 totalUelpSupply = merc20.totalSupply();
 
-        uint256 uelp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
+        uint256 lp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
         // check
-        if (uelp == 0) 
+        if (lp == 0) 
             revert error_UelpAmountIsZero();
         //Effect
-        liqudityProvision.updateLiquidityRecord(msg.sender, uelp);
+        liqudityProvision.updateLiquidityRecord(msg.sender, lp);
         // Interactions (+effect)
-        addLiquidityFrom(msg.sender, USDC_STR, _usdc, uelp, true);
-        addLiquidityFrom(msg.sender, WETH_STR, _eth, uelp, false);
+        addLiquidityFrom(msg.sender, USDC_STR, _usdc, lp, true);
+        addLiquidityFrom(msg.sender, WETH_STR, _eth, lp, false);
 
-        merc20.mint (msg.sender, uelp);
+        merc20.mint (msg.sender, lp);
         
         emit LiquidityDepositDone (msg.sender, _usdc, _eth , i_usdcContract, i_wethContract);
     }
 
-    function withdrawLiquidity (uint256 _uelp)
+    function withdrawLiquidity (uint256 _lp)
     activityOpen 
     poolIsSet
     lpTokenIsSet
-    hasUELPApproval (msg.sender, _uelp)
+    hasLPApproval (msg.sender, _lp)
     nonReentrant
     external {
-        uint256 uelpBalance = merc20.balanceOf(msg.sender);
-        if (uelpBalance == 0)
-            revert error_OnlyUELPTokenHoldersCanAccessThisFunction ();
-        if (uelpBalance < _uelp)
-            revert error_UELPBalanceTooLow ();
-        uint256 sharePct = (_uelp * HUNDRED) / merc20.totalSupply();
+        uint256 lpBalance = merc20.balanceOf(msg.sender);
+        if (lpBalance == 0)
+            revert error_OnlyLPTokenHoldersCanAccessThisFunction ();
+        if (lpBalance < _lp)
+            revert error_LPBalanceTooLow ();
+        uint256 sharePct = (_lp * HUNDRED) / merc20.totalSupply();
         if (sharePct > params.maxWithdrawPct)
             revert error_WithdrawalShareExceedsLimit (sharePct, params.maxWithdrawPct);
         uint256 lastWithdrawn = pool.getLastWithdrawTime (msg.sender);
         if (block.timestamp - lastWithdrawn < params.withdrawCooldown)
             revert error_WithdrawalRequestTooEarly (block.timestamp - lastWithdrawn, params.withdrawCooldown);
 
-        withdrawLiquidtyTo (msg.sender, USDC_STR, sharePct, _uelp, true);
-        withdrawLiquidtyTo (msg.sender, WETH_STR, sharePct, _uelp, false);
+        withdrawLiquidtyTo (msg.sender, USDC_STR, sharePct, _lp, true);
+        withdrawLiquidtyTo (msg.sender, WETH_STR, sharePct, _lp, false);
 
-        merc20.burnFrom (msg.sender, _uelp);
+        merc20.burnFrom (msg.sender, _lp);
 
         emit LiquidityWithdrawlDone (msg.sender);
     }
@@ -464,7 +461,7 @@ contract IDex is ReentrancyGuard {
         address _to,
         string memory _tokenStr,
         uint256 _share,
-        uint256 _uelp,
+        uint256 _lp,
         bool _updateUelp
     )
     poolIsSet 
@@ -473,7 +470,7 @@ contract IDex is ReentrancyGuard {
         uint256 balance0 = token.balanceOf(address (pool));
         uint256 amount = (balance0 * _share) / HUNDRED;
         
-        pool.updateStatesOnWithdrawal(_to, _tokenStr, address (token), amount, _uelp, _updateUelp);
+        pool.updateStatesOnWithdrawal(_to, _tokenStr, address (token), amount, _lp, _updateUelp);
 
         bool success = pool.transferTo (_to, address (token), amount);
         if (!success)
@@ -489,7 +486,7 @@ contract IDex is ReentrancyGuard {
         address _from,
         string memory _tokenStr, 
         uint256 _amount,
-        uint256 _uelp,
+        uint256 _lp,
         bool _updateUelp
     ) 
     internal 
@@ -501,16 +498,23 @@ contract IDex is ReentrancyGuard {
         bool success = token.transferFrom(_from, address (pool), _amount);
         if (!success)
             revert error_ExternalToInternalTransferFailed (_from, address (pool), _tokenStr, address (token), _amount);
-        pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _uelp, _updateUelp);
+        pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _lp, _updateUelp);
         uint256 balance1 = token.balanceOf(address (pool));
         if (balance1 != balance0 + _amount)
             revert error_PostTransferBalanceMismatch ();
     }
 
-    function setContractReferences (address _poolAddress, address _lpAddress, address payable _protocolReward) external onlyOwner(){
+    function registerContracts 
+    (
+        address _poolAddress, 
+        address _lpAddress, 
+        address _protocolReward,
+        address _lpTokenAddress
+    ) external onlyOwner(){
         pool = Pool (payable (_poolAddress));
-        liqudityProvision = LiqudityProvision (_lpAddress);
-        protocolReward =  ProtocolReward (_protocolReward);
+        liqudityProvision = LiquidityProvision (_lpAddress);
+        protocolReward =  ProtocolReward (payable (_protocolReward));
+        merc20 = MyERC20 (_lpTokenAddress);
     }
 
     function getPoolExchangeRate () public view returns (uint256) {
@@ -533,16 +537,6 @@ contract IDex is ReentrancyGuard {
     returns (uint256) {
         uint256 scaledUSDC = _usdc * TRILLION_WEI;
         return scaledUSDC / _eth;
-    }
-
-    function createLPToken 
-    (
-        string memory _name, 
-        string memory _symbol
-    ) 
-    internal 
-    onlyOwner {
-        merc20 = new MyERC20 (_name, _symbol);
     }
 
     function pauseActivity

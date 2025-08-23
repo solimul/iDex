@@ -135,7 +135,7 @@ contract Pool is ReentrancyGuard{
         string memory _tokenStr,
         address _token,
         uint256 _amount,
-        uint256 _uelp,
+        uint256 _lp,
         bool _updateUelp
     ) 
     public 
@@ -144,7 +144,7 @@ contract Pool is ReentrancyGuard{
         LiquidityRecord memory record = LiquidityRecord ({
             token: _token,
             amount: _amount,
-            uelp: _uelp,
+            lp: _lp,
             timeStamp: time
         });
 
@@ -154,7 +154,7 @@ contract Pool is ReentrancyGuard{
         balance [_token] += _amount;
         tokenToTotalProvidenceByProviders [_provider] [_token] += _amount;
         if (_updateUelp==true)
-            totalUelpReceived [_provider] += _uelp;
+            totalUelpReceived [_provider] += _lp;
 
         providers[_token].push (_provider);
         depAddressToIndex [_provider] = providers[_token].length-1;
@@ -168,7 +168,7 @@ contract Pool is ReentrancyGuard{
         string memory _tokenStr,
         address _token,
         uint256 _amount,
-        uint256 _uelp,
+        uint256 _lp,
         bool _updateUelp
     ) 
     public 
@@ -177,7 +177,7 @@ contract Pool is ReentrancyGuard{
         LiquidityRecord memory record = LiquidityRecord ({
             token: _token,
             amount: _amount,
-            uelp: _uelp,
+            lp: _lp,
             timeStamp: time
         });
 
@@ -185,7 +185,7 @@ contract Pool is ReentrancyGuard{
         balance [_token] -= _amount;
         tokenToTotalProvidenceByProviders [_provider] [_token] -= _amount;
         if (_updateUelp == true)
-            totalUelpReceived [_provider] -= _uelp;
+            totalUelpReceived [_provider] -= _lp;
         
         lastWithdrawTime [_provider] = time;
 
@@ -208,7 +208,7 @@ contract Pool is ReentrancyGuard{
         return success;
     }
 
-    function setContractReferences (address _idexAddress) external onlyOwner(){
+    function registerContracts (address _idexAddress) external onlyOwner(){
         facade = IDex (payable (_idexAddress));
     }
 

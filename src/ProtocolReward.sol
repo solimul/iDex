@@ -45,7 +45,7 @@ contract ProtocolReward {
     }
 
 
-    function setContractReferences (address _idexAddress) external onlyOwner(){
+    function registerContracts (address _idexAddress) external onlyOwner(){
         facade = IDex (payable (_idexAddress));
     }
 

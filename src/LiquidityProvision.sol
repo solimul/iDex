@@ -7,14 +7,14 @@ import {IDex} from "./IDex.sol";
 import {TRILLION_WEI} from "./Shared.sol";
 
 
-contract LiqudityProvision {
+contract LiquidityProvision {
 
     error error_OnlyOwnerCanAccessThisFunction (address owner, address sender);
     error error_OnlyFacadeCanAccessThisFunction (address facade, address sender);
     error error_BadReservesOrSupply(uint256 usdcReserve, uint256 ethReserve, uint256 tokenTotalSupply);
 
 
-    mapping (address => uint256) private totalUELP;
+    mapping (address => uint256) private totalLP;
     address [] private lpProviders;
     address private immutable iOwner;
     IDex private facade;
@@ -52,11 +52,11 @@ contract LiqudityProvision {
     function updateLiquidityRecord
     (
         address _provider,
-        uint256 _uelp
+        uint256 _lp
     ) 
     external
     onlyFacade {
-        totalUELP [_provider] += _uelp;        
+        totalLP [_provider] += _lp;        
         lpProviders.push (_provider);
     }
 
@@ -86,17 +86,17 @@ contract LiqudityProvision {
         }
     }
 
-    function setContractReferences (address _idexAddress) external onlyOwner(){
+    function registerContracts (address _idexAddress) external onlyOwner(){
         facade = IDex (payable (_idexAddress));
     }
 
-    function getUELPByProvider 
+    function getLPByProvider 
     (
         address _provider
     ) 
     public
     view
     returns (uint256) {
-        return totalUELP [_provider];
+        return totalLP [_provider];
     }
 }

@@ -4,14 +4,13 @@ pragma solidity 0.8.30;
 
 string constant USDC_STR = "USDC";
 string constant WETH_STR = "WETH"; 
-string constant LPTOKEN_NAME = "USD/ETH LP Token";
-string constant LPTOKEN_SYMBOL = "UELP";
 uint256 constant TRILLION_WEI = 1e12;
 uint256 constant WETH_WEI = 1e18;
 uint256 constant USDC_WEI = 1e6;
 uint256 constant HUNDRED = 100;
 uint256 constant MILLION = 1_000_000;
 uint256 constant TEN_K = 10_000;
+
 
 enum Context {
     PFeeDeposit,
@@ -23,7 +22,7 @@ enum Context {
 struct LiquidityRecord {
     address token;
     uint256 amount;
-    uint256 uelp;
+    uint256 lp;
     uint256 timeStamp;
 }
 
