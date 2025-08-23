@@ -95,8 +95,8 @@ contract DeployIDex is Script {
             pool = new Pool();
             protocolReward = new ProtocolReward();
             myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL);
+            registerContracts ();
         vm.stopBroadcast();
-        registerContracts ();
     }
 
     function registerContracts () internal {

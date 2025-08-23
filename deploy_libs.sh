@@ -15,8 +15,7 @@ deploy_and_record() {
   forge create "$LIB_PATH:$LIB_NAME" \
     --rpc-url "$RPC_URL" \
     --private-key "$PRIVATE_KEY" \
-    --etherscan-api-key "$ETHERSCAN_API_KEY" \
-    --broadcast  > tmp_output.txt
+    --etherscan-api-key "$ETHERSCAN_API_KEY"   > tmp_output.txt
     
 
   ADDRESS=$(grep -oE 'Deployed to: 0x[a-fA-F0-9]{40}' tmp_output.txt | awk '{print $3}')
@@ -25,9 +24,7 @@ deploy_and_record() {
   jq --arg name "$LIB_NAME" --arg addr "$ADDRESS" '. + {($name): $addr}' "$OUTPUT_FILE" > tmp.json && mv tmp.json "$OUTPUT_FILE"
 }
 
-deploy_and_record src/lib/PricefeedManagerLib.sol PricefeedManagerLib
-deploy_and_record src/lib/PriceConverterLib.sol PriceConverterLib
-deploy_and_record src/lib/RevertLib.sol RevertLib
-deploy_and_record src/lib/NetworkConfigLib.sol NetworkConfigLib
+deploy_and_record src/libs/BabylonianLib.sol BabylonianLib
+
 
 echo "✅ All libraries deployed. Addresses saved to $OUTPUT_FILE"

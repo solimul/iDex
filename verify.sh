@@ -4,8 +4,7 @@ DEPLOYMENT_SCRIPT="$3"
 PRIVATE_KEY="$4"
 USDC="$5"
 ETH="$6"
-PRICE_FEED="$7"
-shift 7
+shift 6
 MAPPING=("$@")
 
 BROADCAST_FILE="broadcast/$DEPLOYMENT_SCRIPT/$CHAIN_ID/run-latest.json"
@@ -67,17 +66,15 @@ encode_constructor_args() {
 }
 
 declare -A CONTRACT_TO_PATH=(
-  [Collateral]="src/collateral/Collateral.sol"
-  [Borrow]="src/borrow/Borrow.sol"
-  [Deposit]="src/deposit/Deposit.sol"
-  [Payback]="src/repayment/Payback.sol"
-  [Monitor]="src/liquidation/Monitor.sol"
-  [LiquidationEngine]="src/liquidation/LiquidationEngine.sol"
-  [LiquidationRegistry]="src/liquidation/LiquidationRegistry.sol"
-  [Params]="src/misc/Params.sol"
-  [Treasury]="src/treasury/Treasury.sol"
-  [iLend]="src/ILend.sol"
+  [BabylonianLib]="src/libs/BabylonianLib.sol"
+  [LiquidityProvision]="src/LiquidityProvision.sol"
+  [IDex]="src/IDex.sol"
+  [Pool]="src/Pool.sol"
+  [ProtocolReward]="src/ProtocolReward.sol"
+  [NetworkConfig]="src/NetworkConfig.sol"
+  [Shared]="src/Shared.sol"
 )
+
 
 for contract in "${!CONTRACT_TO_LIBS[@]}"; do
   echo "Verifying $contract..."
@@ -98,5 +95,5 @@ for contract in "${!CONTRACT_TO_LIBS[@]}"; do
 
   echo "Running: ${cmd[*]}"
   "${cmd[@]}"
-  sleep 2 
+  sleep 6 
 done
