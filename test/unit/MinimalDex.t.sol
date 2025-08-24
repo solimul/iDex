@@ -109,17 +109,35 @@ contract BabylonianLibTest is Test {
     }  
 }
 
+contract ProtocolRewardTest is Test {
+    ProtocolReward pReward;
+
+    constructor () {
+
+    }
+
+}
+
 contract IDexTest is Test {
-    IDex dex;
+    IDex private dex;
+    LiquidityProvision private liquidityProvision;
+    Pool private pool;
+    NetworkConfig private networkConfig;
+    MyERC20 private myERC20;
+    ProtocolReward private protocolReward;
     uint256 constant MIN_LIQUIDITY_PPM      = 1000;     // e.g. 0.1% minimum liquidity in parts-per-million
     uint256 constant MAX_WITHDRAW_PCT       = 50;       // max withdraw percentage (50%)
     uint256 constant WITHDRAW_COOLDOWN      = 30 days;   // cooldown period for withdraw
     uint256 constant SWAP_FEE_PCT           = 3;       // 0.3% swap fee
     uint256 constant PROTOCOL_FEE_PCT       = 30;        // 30% of  SWAP_FEE_PCT
     uint256 constant MAX_PAUSE_DURATION     = 7 days;   // maximum pause duration for protocol
+    
+    string constant LPTOKEN_NAME = "USD/ETH LP ERC20 Token";
+    string constant LPTOKEN_SYMBOL = "UELP";
     // ---------- setup ----------
     function setUp() public {
-        NetworkConfig networkConfig = new NetworkConfig();
+        networkConfig = new NetworkConfig();
+
         dex = new IDex
             (
                 networkConfig.getUSDCContract(),
@@ -129,8 +147,156 @@ contract IDexTest is Test {
                 WITHDRAW_COOLDOWN,
                 SWAP_FEE_PCT,
                 PROTOCOL_FEE_PCT,
-                MAX_PAUSE_DURATION
+                MAX_PAUSE_DURATION,
+                true
             ); 
+        liquidityProvision = new LiquidityProvision();
+        pool = new Pool();
+        protocolReward = new ProtocolReward();
+        myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL);
+
+        dex.registerContracts ( address (pool), address (liquidityProvision), address(protocolReward), address (myERC20));
+        pool.registerContracts(address (dex));
+        liquidityProvision.registerContracts(address (dex));
+        protocolReward.registerContracts(address (dex));
+        myERC20.registerContracts (address (dex));
     }
+
+    // ---------- deployment & config ----------
+    function testDeploy_SetsDependencies() public view {
+
+        (address p, address liqPro, address proRew, address ercToken) = dex.getContractAddressForTest();
+        assert (p == address (pool));
+        assert (liqPro == address (liquidityProvision));
+        assert (proRew == address (protocolReward));
+        assert (ercToken == address (myERC20));
+    }
+
+    function testConfig_DefaultParams() public view {
+        (
+            uint256 swapFees,
+            uint256 protFees,
+            uint256 minPpm,
+            uint256 cooldown,
+            address owner
+        ) = dex.getConfigForTest();
+
+        assert (swapFees == SWAP_FEE_PCT);
+        assert (protFees == PROTOCOL_FEE_PCT);
+        assert (minPpm == MIN_LIQUIDITY_PPM);
+        assert (cooldown == WITHDRAW_COOLDOWN);
+        assert (owner == address (this));
+    }
+
+    function testSetSwapFeePct_RevertAbove100() public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        vm.expectRevert();
+        new IDex(
+            usdc,
+            eth,
+            MIN_LIQUIDITY_PPM,
+            MAX_WITHDRAW_PCT,
+            WITHDRAW_COOLDOWN,
+            109,                 // swapFeePct
+            PROTOCOL_FEE_PCT,
+            MAX_PAUSE_DURATION,
+            true
+        );
+    }
+
+
+    function testSetProtocolFeePct_RevertAbove100() public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        vm.expectRevert();
+        new IDex(
+            usdc,
+            eth,
+            MIN_LIQUIDITY_PPM,
+            MAX_WITHDRAW_PCT,
+            WITHDRAW_COOLDOWN,
+            SWAP_FEE_PCT,                 // swapFeePct
+            110,
+            MAX_PAUSE_DURATION,
+            true
+        );
+    }
+
+    function testSetMinLiquidityPpm_RevertAbove1e6() public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        vm.expectRevert();
+        new IDex(
+            usdc,
+            eth,
+            1e6+100,
+            MAX_WITHDRAW_PCT,
+            WITHDRAW_COOLDOWN,
+            SWAP_FEE_PCT,                 // swapFeePct
+            PROTOCOL_FEE_PCT,
+            MAX_PAUSE_DURATION,
+            true
+        );
+    }
+
+    function testSetWithdrawCooldown_RevertZero() public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        vm.expectRevert();
+        new IDex(
+            usdc,
+            eth,
+            MIN_LIQUIDITY_PPM,
+            MAX_WITHDRAW_PCT,
+            0,
+            SWAP_FEE_PCT,                 // swapFeePct
+            PROTOCOL_FEE_PCT,
+            MAX_PAUSE_DURATION,
+            true
+        );
+    }
+
+    // ---------- liquidity: first deposit ----------
+    function testDeposit_FirstDepositorBalnceUpdate () public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 4000e6;
+        uint256 eth$ = 1e18;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+
+        uint256 uBalance0 = IERC20(usdc).balanceOf(address (pool));
+        uint256 eBalance0 = IERC20(eth).balanceOf(address (pool));
+
+        uint256 lpToken = liquidityProvision.calculateUelpForMinting(usdc$, eth$, 0,0, 0, false);
+        
+        uint256 lpBalance0 = myERC20.balanceOf (address (this));
+
+        dex.seedDex(usdc$, eth$);
+
+        uint256 uBalance1 = IERC20(usdc).balanceOf(address (pool));
+        uint256 eBalance1 = IERC20(eth).balanceOf(address (pool));
+
+        uint256 lpBalance1 = myERC20.balanceOf (address (this));
+
+
+        assert (uBalance1 == uBalance0 + usdc$);
+        //console.log ("a====>",uBalance1, uBalance0, usdc$);
+        assert (eBalance1 == eBalance0 + eth$);
+        //console.log ("b====>",eBalance1, eBalance0, eth$);
+
+        uint256 min = (lpToken * MIN_LIQUIDITY_PPM)/MILLION;
+        
+        //console.log ("c====>",lpBalance1, lpBalance0, min);
+        assert (lpBalance1 == lpBalance0 + lpToken - min);
+
+
+    }
+
+    function testDeposit_FirstDepositor_MintsUELP() public {}
+    function testDeposit_FirstDepositor_EmitsEvent() public {}
 }
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {console} from "../lib/forge-std/src/console.sol";
+
 import {Pool} from "./Pool.sol";
 import {LiquidityProvision} from "./LiquidityProvision.sol";
 import {ProtocolReward} from "./ProtocolReward.sol";
@@ -95,6 +97,8 @@ contract IDex is ReentrancyGuard {
 
     uint256 maxPauseDuration;
     uint256 pauseUntil;
+
+    bool private testing;
 
     modifier onlyOwner () {
     if (msg.sender != i_owner) 
@@ -227,7 +231,6 @@ contract IDex is ReentrancyGuard {
         _;
     }
 
-
     constructor 
     (
         address _usdcToken,
@@ -237,7 +240,8 @@ contract IDex is ReentrancyGuard {
         uint256 _withdrawCooldown,
         uint256 _swapFeePct,
         uint256 _protocolFeePct,
-        uint256 _maxPauseDuration
+        uint256 _maxPauseDuration,
+        bool _testing
     ) 
     validParamBounds(_minLiquidityPpm, _maxWithdrawPct, _withdrawCooldown, _swapFeePct, _protocolFeePct) {
         tokenMap [USDC_STR] = _usdcToken;
@@ -256,6 +260,7 @@ contract IDex is ReentrancyGuard {
 
         pauseUntil = 0;
         maxPauseDuration = _maxPauseDuration;
+        testing = _testing;
     }
     
 
@@ -583,5 +588,18 @@ contract IDex is ReentrancyGuard {
         emit NativeETHReceived (msg.sender, msg.value);
     }
 
+    function getContractAddressForTest () 
+    external 
+    view 
+    returns (address, address, address, address ){
+        return (address (pool), address (liqudityProvision), address (protocolReward), address (merc20));
+    }
 
+    function getConfigForTest()
+    external
+    view
+    returns (uint256, uint256 , uint256 ,uint256, address)
+    {
+        return (params.swapFeePct, params.protocolFeePct, params.minLiquidityPpm, params.withdrawCooldown, i_owner);
+    }
 }

@@ -89,7 +89,8 @@ contract DeployIDex is Script {
                 WITHDRAW_COOLDOWN,
                 SWAP_FEE_PCT,
                 PROTOCOL_FEE_PCT,
-                MAX_PAUSE_DURATION
+                MAX_PAUSE_DURATION,
+                false
             );
             liquidityProvision = new LiquidityProvision();
             pool = new Pool();
@@ -110,5 +111,6 @@ contract DeployIDex is Script {
         pool.registerContracts(iDexA);
         liquidityProvision.registerContracts(iDexA);
         protocolReward.registerContracts(iDexA);
+        myERC20.registerContracts (iDexA);
     }
 }
