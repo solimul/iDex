@@ -289,7 +289,8 @@ contract IDex is ReentrancyGuard {
     addressHasEnoughBalance (msg.sender, _tokenInString, _amountIn)
     slippageBpsHigh(_slippageBps)
     badQuote (_quotedOut)
-    nonReentrant {
+    nonReentrant 
+    returns (uint256 outAmount){
         /**
         ** check 
         **/
@@ -301,13 +302,11 @@ contract IDex is ReentrancyGuard {
 
         uint256 protocolFee = (swapFee * params.protocolFeePct) / HUNDRED;
 
-        uint256 outAmount = pool.calculateOutAmount(amountIn, address (tokenIn),address (tokenOut));
+        outAmount = pool.calculateOutAmount(amountIn, address (tokenIn),address (tokenOut));
         
-        // uint256 minAmount = (_quotedOut * _slippageBps) / TEN_K;
-        // if (outAmount < minAmount)
-        //     revert error_SlippageTooHigh (_quotedOut, minAmount);
-        
-
+        uint256 minAmount = (_quotedOut * _slippageBps) / TEN_K;
+        if (outAmount < minAmount)
+            revert error_SlippageTooHigh (_quotedOut, minAmount);
 
        uint256 outTokenBalance0 = tokenOut.balanceOf (address (pool));
 
@@ -610,5 +609,13 @@ contract IDex is ReentrancyGuard {
     returns (uint256, uint256 , uint256 ,uint256, address)
     {
         return (params.swapFeePct, params.protocolFeePct, params.minLiquidityPpm, params.withdrawCooldown, i_owner);
+    }
+
+    function getSwapFeesPct () public view returns (uint256){
+       return params.swapFeePct; 
+    }
+
+    function getProtocolFeePct () public view returns (uint256){
+       return params.protocolFeePct; 
     }
 }

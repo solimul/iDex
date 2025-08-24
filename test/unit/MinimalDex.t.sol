@@ -407,7 +407,7 @@ contract IDexTest is Test {
 
     //*************** Swap */
 
-    function testSwapBalanceUpdate () public {
+    function testSwapETH4USDCBalanceUpdate () public {
         seedHelp ();
         supplyMultipleHelp ();
         address usdc = networkConfig.getUSDCContract();
@@ -420,22 +420,73 @@ contract IDexTest is Test {
         uint256 swapETH = 1e18;
         uint256 quotedUSDC = dex.quoteOutAmount(swapETH, "WETH", "USDC");
         deal(address(eth), address(swapper), swapETH);
-        uint256 uSwapperBalance0 = IERC20 (usdc).balanceOf (address (pool));
-        uint256 eSwapperlBalance0 = IERC20 (eth).balanceOf (address (pool));
+        uint256 swapFee = (swapETH * dex.getSwapFeesPct ()) / HUNDRED;
+        uint256 protocolFee = (swapFee * dex.getProtocolFeePct ()) / HUNDRED;
+
+
+        uint256 uSwapperBalance0 = IERC20 (usdc).balanceOf (swapper);
+        uint256 eSwapperlBalance0 = IERC20 (eth).balanceOf (swapper);
+
+        uint256 eProtocolRewardBalance0 = IERC20 (eth).balanceOf (address (protocolReward));
 
         vm.startPrank (swapper);
         IERC20(eth).approve(address(dex), swapETH);
-        dex.swap (swapETH, quotedUSDC, 1, "WETH", "USDC"); 
+        uint256 outUsdcAmount = dex.swap (swapETH, quotedUSDC, 1, "WETH", "USDC"); 
         vm.stopPrank ();  
 
         uint256 uPoolBalance1 = IERC20 (usdc).balanceOf (address (pool));
         uint256 ePoolBalance1 = IERC20 (eth).balanceOf (address (pool));
-        uint256 uSwapperBalance1 = IERC20 (usdc).balanceOf (address (pool));
-        uint256 eSwapperlBalance1 = IERC20 (eth).balanceOf (address (pool));
+        uint256 uSwapperBalance1 = IERC20 (usdc).balanceOf (swapper);
+        uint256 eSwapperlBalance1 = IERC20 (eth).balanceOf (swapper);
+        uint256 eProtocolRewardBalance1 = IERC20 (eth).balanceOf (address (protocolReward));
 
-        // assert (uPoolBalance1 == uPoolBalance0 - quotedUSDC);
-        // asset ()
 
+        assert (uPoolBalance1 == uPoolBalance0 - outUsdcAmount);
+        assert (ePoolBalance1 == ePoolBalance0 + swapETH - protocolFee);
+        assert (uSwapperBalance1 == uSwapperBalance0 + outUsdcAmount);
+        assert (eSwapperlBalance1 == eSwapperlBalance0 - swapETH);
+        assert (eProtocolRewardBalance1 == eProtocolRewardBalance0 + protocolFee);
+    }
+
+    function testSwapUSDC4ETHBalanceUpdate () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+
+        uint256 uPoolBalance0 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 ePoolBalance0 = IERC20 (eth).balanceOf (address (pool));
+
+        address swapper = address (uint160 (1));
+
+        uint256 swapUSDC = 4000e6;
+        uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+        deal(address(usdc), address(swapper), swapUSDC);
+        uint256 swapFee = (swapUSDC * dex.getSwapFeesPct ()) / HUNDRED;
+        uint256 protocolFee = (swapFee * dex.getProtocolFeePct ()) / HUNDRED;
+
+
+        uint256 uSwapperBalance0 = IERC20 (usdc).balanceOf (swapper);
+        uint256 eSwapperlBalance0 = IERC20 (eth).balanceOf (swapper);
+
+        uint256 uProtocolRewardBalance0 = IERC20 (usdc).balanceOf (address (protocolReward));
+
+        vm.startPrank (swapper);
+        IERC20(usdc).approve(address(dex), swapUSDC);
+        uint256 outETHAmount = dex.swap (swapUSDC, quotedETH, 1, "USDC", "WETH"); 
+        vm.stopPrank ();  
+
+        uint256 uPoolBalance1 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 ePoolBalance1 = IERC20 (eth).balanceOf (address (pool));
+        uint256 uSwapperBalance1 = IERC20 (usdc).balanceOf (swapper);
+        uint256 eSwapperlBalance1 = IERC20 (eth).balanceOf (swapper);
+        uint256 uProtocolRewardBalance1 = IERC20 (usdc).balanceOf (address (protocolReward));
+
+        assert (uPoolBalance1 == uPoolBalance0 + swapUSDC - protocolFee);
+        assert (ePoolBalance1 == ePoolBalance0 - outETHAmount);
+        assert (uSwapperBalance1 == uSwapperBalance0 - swapUSDC);
+        assert (eSwapperlBalance1 == eSwapperlBalance0 + outETHAmount);
+        assert (uProtocolRewardBalance1 == uProtocolRewardBalance0 + protocolFee);
     }
 
     // *** Helper Functions ***
