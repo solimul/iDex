@@ -74,6 +74,7 @@ contract IDex is ReentrancyGuard {
     error error_PercentageOutOfRange(string field, uint256 value, uint256 max);
     error error_MinLiquidityPpmTooHigh(uint256 value, uint256 max);
     error error_WithdrawCooldownZero();
+    error error_AmountIsZero ();
 
 
 
@@ -147,7 +148,7 @@ contract IDex is ReentrancyGuard {
     modifier checkNotSeeded () {
         if (seeded == true)
             revert error_PoolAlreadySedded ();
-            _;
+        _;
     }
 
     modifier rateIsGood (uint256 _usdc, uint256 _eth) {
@@ -162,7 +163,7 @@ contract IDex is ReentrancyGuard {
     modifier seedingIsDone () {
         if (seeded == false)
             revert error_PoolHasNotBeenSeddedYet ();
-            _;
+        _;
     }
 
     modifier liquidityProvisionIsSet() {
@@ -207,6 +208,12 @@ contract IDex is ReentrancyGuard {
             revert error_ActivitiesPausedUntil(pauseUntil);
         }
         _;
+    }
+
+    modifier nonZeroAmount (uint256 _amount) {
+         if (_amount == 0) 
+            revert error_AmountIsZero ();
+         _;
     }
 
 
@@ -296,9 +303,9 @@ contract IDex is ReentrancyGuard {
 
         uint256 outAmount = pool.calculateOutAmount(amountIn, address (tokenIn),address (tokenOut));
         
-        uint256 minAmount = (_quotedOut *  (TEN_K - _slippageBps)) / TEN_K;
-        if (outAmount < minAmount)
-            revert error_SlippageTooHigh (_quotedOut, minAmount);
+        // uint256 minAmount = (_quotedOut * _slippageBps) / TEN_K;
+        // if (outAmount < minAmount)
+        //     revert error_SlippageTooHigh (_quotedOut, minAmount);
         
 
 
@@ -394,6 +401,8 @@ contract IDex is ReentrancyGuard {
     poolIsSet
     lpTokenIsSet
     rateIsGood (_usdc, _eth)
+    nonZeroAmount (_usdc)
+    nonZeroAmount(_eth)
     seedingIsDone
     nonReentrant
     external {

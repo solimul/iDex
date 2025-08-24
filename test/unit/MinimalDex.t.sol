@@ -134,6 +134,8 @@ contract IDexTest is Test {
     
     string constant LPTOKEN_NAME = "USD/ETH LP ERC20 Token";
     string constant LPTOKEN_SYMBOL = "UELP";
+
+    uint256 constant NPROVIDERS = 5;
     // ---------- setup ----------
     function setUp() public {
         networkConfig = new NetworkConfig();
@@ -284,19 +286,220 @@ contract IDexTest is Test {
 
 
         assert (uBalance1 == uBalance0 + usdc$);
-        //console.log ("a====>",uBalance1, uBalance0, usdc$);
         assert (eBalance1 == eBalance0 + eth$);
-        //console.log ("b====>",eBalance1, eBalance0, eth$);
 
-        uint256 min = (lpToken * MIN_LIQUIDITY_PPM)/MILLION;
+        uint256 reserve = (lpToken * MIN_LIQUIDITY_PPM)/MILLION;
+
+        assert (lpBalance1 == lpBalance0 + lpToken - reserve);
+    }
+
+    function testDeposit_SupplyLiquidityBalnceUpdateWithSeeding () public {
+        testDeposit_FirstDepositorBalnceUpdate ();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 8010e6;
+        uint256 eth$ = 2e18;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+
+        uint256 uBalance0 = IERC20(usdc).balanceOf(address (pool));
+        uint256 eBalance0 = IERC20(eth).balanceOf(address (pool));
+
+        uint256 lpToken = liquidityProvision.calculateUelpForMinting(usdc$, eth$, pool.getBalance(usdc), pool.getBalance(eth), myERC20.totalSupply(), true);
         
-        //console.log ("c====>",lpBalance1, lpBalance0, min);
-        assert (lpBalance1 == lpBalance0 + lpToken - min);
+        uint256 lpBalance0 = myERC20.balanceOf (address (this));
 
+        dex.supplyLiquidity(usdc$, eth$);
+
+        uint256 uBalance1 = IERC20(usdc).balanceOf(address (pool));
+        uint256 eBalance1 = IERC20(eth).balanceOf(address (pool));
+
+        uint256 lpBalance1 = myERC20.balanceOf (address (this));
+
+
+        assert (uBalance1 == uBalance0 + usdc$);
+        assert (eBalance1 == eBalance0 + eth$);
+
+
+        assert (lpBalance1 == lpBalance0 + lpToken);    
+    }
+
+    function testDeposit_SupplyLiquidityWithoutSeeding () public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 8010e6;
+        uint256 eth$ = 2e18;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+        
+        vm.expectRevert(); 
+        dex.supplyLiquidity(usdc$, eth$);
+    }
+
+    function testDeposit_FirstDepositorWrongAmount () public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 0;
+        uint256 eth$ = 0;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+        vm.expectRevert(IDex.error_UelpAmountIsZero.selector);
+        dex.seedDex(usdc$, eth$);
+    }
+
+       function testDeposit_SupplyLiquidityWrongAmount () public {
+        testDeposit_FirstDepositorBalnceUpdate ();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 0;
+        uint256 eth$ = 0;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+        vm.expectRevert();
+        dex.supplyLiquidity (usdc$, eth$);
+    }
+
+    function testDeposit_DoubleSeed () public {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 8010e6;
+        uint256 eth$ = 2e18;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+        dex.seedDex(usdc$, eth$);
+        vm.expectRevert ();
+        dex.seedDex(usdc$, eth$);
+    }
+
+    function testDeposit_MultipleSupplyLiquidityBalance () public {
+        seedHelp ();
+        (
+            uint256[NPROVIDERS] memory eBalance0,
+            uint256[NPROVIDERS] memory eBalance1,
+            uint256[NPROVIDERS] memory uBalance0,
+            uint256[NPROVIDERS] memory uBalance1,
+            uint256[NPROVIDERS] memory lpBalance0,
+            uint256[NPROVIDERS] memory lpBalance1,
+            uint256[NPROVIDERS] memory lpSupply0,
+            uint256[NPROVIDERS] memory lpSupply1,
+            uint256[NPROVIDERS] memory calculatedLPAmount
+        ) = supplyMultipleHelp();
+
+        uint256 uBase = 5000e6;
+        uint256 eBase = 1e18;
+        for (uint256 i=0; i<NPROVIDERS;i++) {
+            assert (uBalance1 [i] == uBalance0 [i] + (i+1)* uBase );
+            assert (eBalance1 [i] == eBalance0 [i] + (i+1) * eBase);
+            assert (lpBalance1 [i] == lpBalance0 [i] + calculatedLPAmount [i]);
+            assert (lpSupply1 [i] == lpSupply0 [i] + calculatedLPAmount [i]);
+        }
+    }
+
+    //*************** Swap */
+
+    function testSwapBalanceUpdate () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 uPoolBalance0 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 ePoolBalance0 = IERC20 (eth).balanceOf (address (pool));
+
+        address swapper = address (uint160 (1));
+
+        uint256 swapETH = 1e18;
+        uint256 quotedUSDC = dex.quoteOutAmount(swapETH, "WETH", "USDC");
+        deal(address(eth), address(swapper), swapETH);
+        uint256 uSwapperBalance0 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 eSwapperlBalance0 = IERC20 (eth).balanceOf (address (pool));
+
+        vm.startPrank (swapper);
+        IERC20(eth).approve(address(dex), swapETH);
+        dex.swap (swapETH, quotedUSDC, 1, "WETH", "USDC"); 
+        vm.stopPrank ();  
+
+        uint256 uPoolBalance1 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 ePoolBalance1 = IERC20 (eth).balanceOf (address (pool));
+        uint256 uSwapperBalance1 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 eSwapperlBalance1 = IERC20 (eth).balanceOf (address (pool));
+
+        // assert (uPoolBalance1 == uPoolBalance0 - quotedUSDC);
+        // asset ()
 
     }
 
-    function testDeposit_FirstDepositor_MintsUELP() public {}
-    function testDeposit_FirstDepositor_EmitsEvent() public {}
+    // *** Helper Functions ***
+
+    function seedHelp () internal {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        uint256 usdc$ = 8010e6;
+        uint256 eth$ = 2e18;
+        deal(address(usdc), address(this), usdc$);
+        deal(address(eth), address(this), eth$);
+        IERC20(usdc).approve(address(dex), usdc$);
+        IERC20(eth).approve(address(dex), eth$);
+        dex.seedDex(usdc$, eth$);
+    }
+
+    function supplyHelp (address iAddress, uint256 usdc$, uint256 eth$) internal {
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        deal(address(usdc), address(iAddress), usdc$);
+        deal(address(eth), address(iAddress), eth$);
+        vm.startPrank(iAddress);
+            IERC20(usdc).approve(address(dex), usdc$);
+            IERC20(eth).approve(address(dex), eth$);
+            dex.supplyLiquidity( usdc$ , eth$);
+        vm.stopPrank();
+    }
+
+    function supplyMultipleHelp () 
+    public 
+    returns 
+    (
+        uint256[NPROVIDERS] memory eBalance0,
+        uint256[NPROVIDERS] memory eBalance1,
+        uint256[NPROVIDERS] memory uBalance0,
+        uint256[NPROVIDERS] memory uBalance1,
+        uint256[NPROVIDERS] memory lpBalance0,
+        uint256[NPROVIDERS] memory lpBalance1,
+        uint256[NPROVIDERS] memory lpSupply0,
+        uint256[NPROVIDERS] memory lpSupply1,
+        uint256[NPROVIDERS] memory calculatedLPAmount
+    )
+    {
+        uint256 uBase = 5000e6;
+        uint256 eBase = 1e18;
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+        for (uint256 i=1; i<=NPROVIDERS; i++) {
+            address iAddress = address (uint160 (i));
+            uBalance0 [i-1] = IERC20 (usdc).balanceOf (address (pool));
+            eBalance0 [i-1] = IERC20 (eth).balanceOf (address (pool)); 
+            lpBalance0 [i-1] = myERC20.balanceOf (iAddress); 
+            lpSupply0 [i-1] = myERC20.totalSupply();
+            calculatedLPAmount [i-1] = liquidityProvision.calculateUelpForMinting
+                                            (uBase *i, eBase * i, pool.getBalance(usdc), pool.getBalance(eth), myERC20.totalSupply(), true);
+            
+            supplyHelp (iAddress, uBase *i, eBase * i);
+
+            uBalance1 [i-1] = IERC20 (usdc).balanceOf (address (pool));
+            eBalance1 [i-1] = IERC20 (eth).balanceOf (address (pool)); 
+            lpBalance1 [i-1] = myERC20.balanceOf (iAddress);
+            lpSupply1 [i-1] = myERC20.totalSupply();
+        }
+    }
+
 }
 
