@@ -99,4 +99,14 @@ contract LiquidityProvision {
     returns (uint256) {
         return totalLP [_provider];
     }
+
+    function getLiquidityRecord4Test 
+    (
+        address _provider
+    ) 
+    external
+    view
+    returns (uint256 _totalLP, uint256 cntLPProviders) {
+        (_totalLP, cntLPProviders) = (totalLP [_provider], lpProviders.length);       
+    }
 }

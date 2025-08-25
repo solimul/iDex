@@ -47,8 +47,7 @@ contract Pool is ReentrancyGuard{
     mapping (address=> mapping (address => uint256)) private tokenToTotalProvidenceByProviders;
     mapping (address=>uint256) private totalUelpReceived;
     
-    mapping (address => address []) providers; // token to providers
-    mapping (address => uint256) depAddressToIndex;
+    mapping (address => mapping (address=>uint256)) tokenProviders; // token to providers
     mapping (address => address []) withdrawers; // token to withdrawers
     mapping (address => uint256) withdrawersAddressToIndex;
 
@@ -156,8 +155,7 @@ contract Pool is ReentrancyGuard{
         if (_updateUelp==true)
             totalUelpReceived [_provider] += _lp;
 
-        providers[_token].push (_provider);
-        depAddressToIndex [_provider] = providers[_token].length-1;
+        tokenProviders[_token] [_provider] += 1;
         
         emit TokenProvidedToPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
     }
@@ -230,6 +228,44 @@ contract Pool is ReentrancyGuard{
 
     fallback () external payable {
         emit NativeETHReceived (msg.sender, msg.value);
+    }
+
+    function getPoolRecord4ProvidenceTest 
+    (
+        address _provider,
+        address _token
+    ) 
+    external
+    view
+    returns 
+    (
+        address token,
+        uint256 amount,
+        uint256 lp,
+        uint256 pCounts,
+        uint256 totalBalanceByToken,
+        uint256 tokenProviderBalance,
+        uint256 totalUelpByProvider,
+        uint256 providerProvidedForThisToken
+
+    ) {
+        pCounts = getProviderCountByToken (_token);
+        LiquidityRecord storage recordByToken = providences [_token] [pCounts-1];
+        token = recordByToken.token;
+        amount = recordByToken.amount;
+        lp = recordByToken.lp;
+        totalBalanceByToken = getTotalBalanceByToken (_token);
+        tokenProviderBalance = tokenToTotalProvidenceByProviders [_provider] [_token];
+        totalUelpByProvider = totalUelpReceived [_provider];
+        providerProvidedForThisToken = tokenProviders[_token] [_provider];
+    }
+
+    function getProviderCountByToken (address _token) public view returns (uint256){
+        return providerCounts [_token];
+    }
+
+    function getTotalBalanceByToken (address _token) public view returns (uint256) {
+        return balance [_token];
     }
 
     
