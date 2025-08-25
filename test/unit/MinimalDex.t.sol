@@ -489,6 +489,56 @@ contract IDexTest is Test {
         assert (uProtocolRewardBalance1 == uProtocolRewardBalance0 + protocolFee);
     }
 
+
+
+    function testSwapWrongToken () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+        address swapper = address (uint160 (1));
+
+        uint256 swapUSDC = 4000e6;
+        uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+        deal(address(usdc), address(swapper), swapUSDC);
+        vm.startPrank (swapper);
+        IERC20(usdc).approve(address(dex), swapUSDC);
+        vm.expectRevert(); 
+        dex.swap (swapUSDC, quotedETH, 1, "LCX", "WETH"); 
+        vm.stopPrank ();  
+    }
+
+    function testSwapWrongAmount () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+        address swapper = address (uint160 (1));
+
+        uint256 swapUSDC = 4000e6;
+        uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+        deal(address(usdc), address(swapper), swapUSDC);
+        vm.startPrank (swapper);
+        IERC20(usdc).approve(address(dex), swapUSDC);
+        //vm.expectRevert(); 
+        dex.swap (swapUSDC, 0, 1, "USDC", "WETH"); 
+        vm.stopPrank ();  
+    }
+
+    function testSwapSamePair () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+        address swapper = address (uint160 (1));
+
+        uint256 swapUSDC = 4000e6;
+        uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+        deal(address(usdc), address(swapper), swapUSDC);
+        vm.startPrank (swapper);
+        IERC20(usdc).approve(address(dex), swapUSDC);
+        //vm.expectRevert(); 
+        dex.swap (swapUSDC, 0, 1, "USDC", "USDC"); 
+        vm.stopPrank ();  
+    }
+
     // *** Helper Functions ***
 
     function seedHelp () internal {

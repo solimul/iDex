@@ -127,9 +127,8 @@ contract IDex is ReentrancyGuard {
             keccak256(abi.encodePacked(_tokenStr)) == keccak256(abi.encodePacked(USDC_STR)) ||
             keccak256(abi.encodePacked(_tokenStr)) == keccak256(abi.encodePacked(WETH_STR))
         );
-
         if (!isValid)
-        revert error_InvalidToken (_tokenStr, string.concat(USDC_STR, " | ", WETH_STR));
+            revert error_InvalidToken (_tokenStr, string.concat(USDC_STR, " | ", WETH_STR));
         _;
     }
 
@@ -284,6 +283,7 @@ contract IDex is ReentrancyGuard {
     validSender
     validTokens (_tokenInString)
     validTokens (_tokenOutString)
+    nonZeroAmount (_amountIn)
     checkIfSameToken(_tokenInString, _tokenOutString)
     hasApproval (msg.sender, _tokenInString,  _amountIn)
     addressHasEnoughBalance (msg.sender, _tokenInString, _amountIn)
@@ -396,6 +396,7 @@ contract IDex is ReentrancyGuard {
         uint256 _eth
     )
     activityOpen
+    validSender
     liquidityProvisionIsSet
     poolIsSet
     lpTokenIsSet
