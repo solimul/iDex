@@ -681,6 +681,59 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
         vm.stopPrank ();  
     }
 
+    function testSwap_StateUpdates () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address usdc = networkConfig.getUSDCContract();
+
+        address swapper = address (this);
+
+        address eth = networkConfig.getETHContract();
+        (
+            uint256 balanceIn0,
+            uint256 balanceOut0,
+            uint256 swapsCount0,
+            address swapper0,
+            address tokenIn0,
+            uint256 amountIn0,
+            uint256 amountOut0,
+            uint256 swapFee0,
+            uint256 totalSwapFee0
+        ) = pool.getSwapBalanceUpdate4Test(usdc, eth);
+
+        uint256 swapUSDC = 4000e6;
+        uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+        deal(address(usdc), address(swapper), swapUSDC);
+        
+        uint256 swapFee = (swapUSDC * dex.getSwapFeesPct ()) / HUNDRED;
+        uint256 protocolFee = (swapFee * dex.getProtocolFeePct ()) / HUNDRED;
+
+        vm.startPrank (swapper);
+        IERC20(usdc).approve(address(dex), swapUSDC);
+        uint256 ethOut = dex.swap (swapUSDC, quotedETH, 1, "USDC", "WETH"); 
+        vm.stopPrank ();  
+
+         (
+            uint256 balanceIn1,
+            uint256 balanceOut1,
+            uint256 swapsCount1,
+            address swapper1,
+            address tokenIn1,
+            uint256 amountIn1,
+            uint256 amountOut1,
+            uint256 swapFee1,
+            uint256 totalSwapFee1
+        ) = pool.getSwapBalanceUpdate4Test(usdc, eth);
+
+        assertEq(balanceIn1, balanceIn0 + swapUSDC - protocolFee, "balanceIn changed unexpectedly");
+        assertEq(balanceOut1, balanceOut0 - ethOut, "balanceOut changed unexpectedly");
+        assertEq(swapsCount1, swapsCount0 + 1, "swapsCount changed unexpectedly");
+        assertEq(amountIn1, amountIn0 + swapUSDC - protocolFee, "amountIn changed unexpectedly");
+        assertEq(amountOut1, ethOut, "amountOut changed unexpectedly");
+        assertEq(swapFee1, swapFee - protocolFee, "swapFee changed unexpectedly");
+        assertEq(totalSwapFee1, totalSwapFee0 + swapFee  - protocolFee, "totalSwapFee changed unexpectedly");
+    }
+
     // *** Helper Functions ***
 
     function seedHelp () internal {

@@ -54,7 +54,6 @@ contract Pool is ReentrancyGuard{
     mapping (address => uint256) lastWithdrawTime;
 
     mapping (address=>SwapRecord []) swaps;
-    mapping (address => uint256 []) inToken2SwapIDs;
 
     uint256 private swapsCount;
     uint256 private totalSwapFees;
@@ -103,7 +102,7 @@ contract Pool is ReentrancyGuard{
     external
     onlyFacade {
 
-        balance [_tokenIn] += _amountIn;
+        balance [_tokenIn] += _amountIn + _swapFee;
         balance [_tokenOut] -= _amountOut;
         uint256 time = block.timestamp;
 
@@ -114,18 +113,18 @@ contract Pool is ReentrancyGuard{
                     id : swapsCount,
                     swapper : _swapper,
                     tokenIn : _tokenIn,
-                    amountIn: _amountIn,
+                    amountIn: _amountIn + _swapFee,
                     amountOut: _amountOut,
                     swapFee: _swapFee,
                     timeStamp : time
                 }
             )
         );
-        inToken2SwapIDs [_tokenIn].push (swapsCount);
         swapsCount += 1;
         totalSwapFees += _swapFee;
     }
 
+    
 
 
     function updateStatesOnProvidence
@@ -271,6 +270,38 @@ contract Pool is ReentrancyGuard{
         return balance [_token];
     }
 
+    function getSwapBalanceUpdate4Test 
+    (
+        address _tokenIn, 
+        address _tokenOut
+    ) 
+    public
+    view
+    returns 
+    (
+        uint256 balance_tokenIn,
+        uint256 balance_tokenOut,
+        uint256 _swapsCount,
+        address _swapper,
+        address tokenIn,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 swapFee,
+        uint256 _totalSwapFee
+    )  {
+        if (swapsCount == 0)
+            return (getBalance (_tokenIn), getBalance (_tokenOut), 0, address (0), _tokenIn, 0, 0, 0, totalSwapFees);
+        balance_tokenIn = balance [_tokenIn];
+        balance_tokenOut = balance [_tokenOut];
+        SwapRecord memory r = swaps [_tokenOut] [swapsCount-1];
+        _swapsCount = r.id+1;
+        _swapper = r.swapper;
+        amountIn = r.amountIn;
+        amountOut = r.amountOut;
+        swapFee = r.swapFee;
+        _totalSwapFee = totalSwapFees;
+        tokenIn = _tokenIn;
+    }
     
 } 
 
