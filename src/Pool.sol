@@ -250,11 +250,14 @@ contract Pool is ReentrancyGuard{
 
     ) {
         pCounts = getProviderCountByToken (_token);
+        totalBalanceByToken = getTotalBalanceByToken (_token);
+
+        if (tokenToTotalProvidenceByProviders [_provider] [_token] == 0)
+            return (_token, 0, 0, pCounts, totalBalanceByToken, 0, 0, 0);
         LiquidityRecord storage recordByToken = providences [_token] [pCounts-1];
         token = recordByToken.token;
         amount = recordByToken.amount;
         lp = recordByToken.lp;
-        totalBalanceByToken = getTotalBalanceByToken (_token);
         tokenProviderBalance = tokenToTotalProvidenceByProviders [_provider] [_token];
         totalUelpByProvider = totalUelpReceived [_provider];
         providerProvidedForThisToken = tokenProviders[_token] [_provider];

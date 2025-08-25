@@ -449,101 +449,102 @@ contract IDexTest is Test {
     }
 
 
+    function testDeposit_StateUpdateUSDC_ManyProvidences () public {
+        seedHelp();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
+
+        uint256 usdcAmt = 4_000e6;
+        uint256 ethAmt  = 1e18;
+
+        for (uint256 i=0; i<2; i++) {
+            (
+                address tokenAddr0,
+                uint256 amount0,
+                uint256 lp0,
+                uint256 pCounts0,
+                uint256 totalBalanceByToken0,
+                uint256 tokenProviderBalance0,
+                uint256 totalUelpByProvider0,
+                uint256 providerProvidedForThisToken0
+            ) = pool.getPoolRecord4ProvidenceTest(address(this), usdc);
+            usdcAmt = usdcAmt* (i+1);
+            ethAmt = ethAmt * (i+1);
+            uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
+                            usdcAmt, ethAmt, pool.getBalance(usdc),  pool.getBalance(eth), myERC20.totalSupply(), true);
+            supplyHelp(address (this), usdcAmt, ethAmt);
+
+            (
+                address tokenAddr1,
+                uint256 amount1,
+                uint256 lp1,
+                uint256 pCounts1,
+                uint256 totalBalanceByToken1,
+                uint256 tokenProviderBalance1,
+                uint256 totalUelpByProvider1,
+                uint256 providerProvidedForThisToken1
+            ) = pool.getPoolRecord4ProvidenceTest(address(this), usdc);
+
+            assertEq(tokenAddr1, tokenAddr0, "Token address changed");
+            assertEq(amount1, usdcAmt, "deposit amount wrong");
+            assertEq(lp1, expectedLp, "LP minted for this deposit mismatches");
+            assertEq(pCounts1, pCounts0 + 1, "Provider count not incremented");
+            assertEq(totalBalanceByToken1, totalBalanceByToken0 + usdcAmt, "Total pool balance mismatch");
+            assertEq(tokenProviderBalance1, tokenProviderBalance0 + usdcAmt, "Provider balance mismatch");
+            assertEq(totalUelpByProvider1, totalUelpByProvider0 + expectedLp, "Provider total UELP mismatch");
+            assertEq(providerProvidedForThisToken1, providerProvidedForThisToken0 + 1, "ProviderProvidedForThisToken mismatch");
+        }
+    }
 
 
-    // function testDeposit_StateUpdate_ManyProviders(uint8 n) public {
-    //     address usdc = networkConfig.getUSDCContract();
-    //     address eth  = networkConfig.getETHContract();
+function testDeposit_StateUpdateUSDC_ManyProviders () public {
+        seedHelp();
+        address usdc = networkConfig.getUSDCContract();
+        address eth = networkConfig.getETHContract();
 
-    //     // Seed once by owner
-    //     uint256 seedUSDC = 4000e6;
-    //     uint256 seedETH  = 1e18;
-    //     deal(usdc, address(this), seedUSDC);
-    //     deal(eth,  address(this), seedETH);
-    //     IERC20(usdc).approve(address(dex), seedUSDC);
-    //     IERC20(eth).approve(address(dex), seedETH);
-    //     dex.seedDex(seedUSDC, seedETH);
+        uint256 usdcAmt = 4_000e6;
+        uint256 ethAmt  = 1e18;
 
-    //     // Bound n to keep test time reasonable
-    //     uint256 N = bound(uint256(n), 1, 8);
+        for (uint256 i=0; i<NPROVIDERS; i++) {
+            address provider = address (uint160 (i+1));
+            (
+                address tokenAddr0,
+                uint256 amount0,
+                uint256 lp0,
+                uint256 pCounts0,
+                uint256 totalBalanceByToken0,
+                uint256 tokenProviderBalance0,
+                uint256 totalUelpByProvider0,
+                uint256 providerProvidedForThisToken0
+            ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
+            usdcAmt = usdcAmt* (i+1);
+            ethAmt = ethAmt * (i+1);
+            uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
+                            usdcAmt, ethAmt, pool.getBalance(usdc),  pool.getBalance(eth), myERC20.totalSupply(), true);
 
-    //     uint256 usdcBase = 5_000e6;
-    //     uint256 ethBase  = 1e18;
+            supplyHelp(provider, usdcAmt, ethAmt);
 
-    //     for (uint256 i = 1; i <= N; i++) {
-    //         address provider = vm.addr(i);
+            (
+                address tokenAddr1,
+                uint256 amount1,
+                uint256 lp1,
+                uint256 pCounts1,
+                uint256 totalBalanceByToken1,
+                uint256 tokenProviderBalance1,
+                uint256 totalUelpByProvider1,
+                uint256 providerProvidedForThisToken1
+            ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
 
-    //         // ---- capture reserves and total supply BEFORE this provider's deposit
-    //         uint256 usdcReserve = pool.getBalance(usdc);
-    //         uint256 ethReserve  = pool.getBalance(eth);
-    //         uint256 totalUelpSupply = myERC20.totalSupply();
-
-    //         uint256 uAmt = usdcBase * i;
-    //         uint256 eAmt = ethBase  * i;
-
-    //         // ---- pre-state per token
-    //         (
-    //             , uint256 amountU0, uint256 lpU0, uint256 pCountsU0,
-    //             uint256 totalBalanceByTokenU0, uint256 tokenProviderBalanceU0,
-    //             uint256 totalUelpByProviderU0, uint256 providerProvidedForThisTokenU0
-    //         ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
-
-    //         (
-    //             , uint256 amountE0, uint256 lpE0, uint256 pCountsE0,
-    //             uint256 totalBalanceByTokenE0, uint256 tokenProviderBalanceE0,
-    //             , uint256 providerProvidedForThisTokenE0
-    //         ) = pool.getPoolRecord4ProvidenceTest(provider, eth);
-
-    //         // Expected LP for non-seed path
-    //         uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
-    //             uAmt, eAmt, usdcReserve, ethReserve, totalUelpSupply, true
-    //         );
-
-    //         // ---- act
-    //         _supplyAsHelp(provider, uAmt, eAmt);
-
-    //         // ---- post-state per token
-    //         (
-    //             , uint256 amountU1, uint256 lpU1, uint256 pCountsU1,
-    //             uint256 totalBalanceByTokenU1, uint256 tokenProviderBalanceU1,
-    //             uint256 totalUelpByProviderU1, uint256 providerProvidedForThisTokenU1
-    //         ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
-
-    //         (
-    //             , uint256 amountE1, uint256 lpE1, uint256 pCountsE1,
-    //             uint256 totalBalanceByTokenE1, uint256 tokenProviderBalanceE1,
-    //             , uint256 providerProvidedForThisTokenE1
-    //         ) = pool.getPoolRecord4ProvidenceTest(provider, eth);
-
-    //         // ---- asserts (same rules as the single-depositor case) ----
-    //         assertEq(amountU1, amountU0 + uAmt, "USDC amount delta wrong");
-    //         assertEq(amountE1, amountE0 + eAmt, "ETH  amount delta wrong");
-
-    //         // lp is usually recorded on one leg; keep USDC assert, toggle ETH if your Pool records it there too
-    //         assertEq(lpU1, lpU0 + expectedLp, "USDC lp mismatch");
-    //         // assertEq(lpE1, lpE0 + expectedLp, "ETH lp mismatch");
-
-    //         // pCounts increments by 1 for a new provider
-    //         assertEq(pCountsU1, pCountsU0 + 1, "USDC pCounts not +1");
-    //         assertEq(pCountsE1, pCountsE0 + 1, "ETH  pCounts not +1");
-
-    //         // Pool totals increase by amounts
-    //         assertEq(totalBalanceByTokenU1, totalBalanceByTokenU0 + uAmt, "USDC pool total wrong");
-    //         assertEq(totalBalanceByTokenE1, totalBalanceByTokenE0 + eAmt, "ETH  pool total wrong");
-
-    //         // Per-provider token totals
-    //         assertEq(tokenProviderBalanceU1, tokenProviderBalanceU0 + uAmt, "USDC provider total wrong");
-    //         assertEq(tokenProviderBalanceE1, tokenProviderBalanceE0 + eAmt, "ETH  provider total wrong");
-
-    //         // Provider’s total UELP grows by expected amount
-    //         assertEq(totalUelpByProviderU1, totalUelpByProviderU0 + expectedLp, "provider totalUelp wrong");
-
-    //         // Count of times this provider provided for token increments
-    //         assertEq(providerProvidedForThisTokenU1, providerProvidedForThisTokenU0 + 1, "USDC provided count wrong");
-    //         assertEq(providerProvidedForThisTokenE1, providerProvidedForThisTokenE0 + 1, "ETH  provided count wrong");
-    //     }
-    // }
-
+            assertEq(tokenAddr1, tokenAddr0, "Token address changed");
+            assertEq(amount1, usdcAmt, "deposit amount wrong");
+            assertEq(lp1, expectedLp, "LP minted for this deposit mismatches");
+            assertEq(pCounts1, pCounts0 + 1, "Provider count not incremented");
+            assertEq(totalBalanceByToken1, totalBalanceByToken0 + usdcAmt, "Total pool balance mismatch");
+            assertEq(tokenProviderBalance1, tokenProviderBalance0 + usdcAmt, "Provider balance mismatch");
+            assertEq(totalUelpByProvider1, totalUelpByProvider0 + expectedLp, "Provider total UELP mismatch");
+            assertEq(providerProvidedForThisToken1, providerProvidedForThisToken0 + 1, "ProviderProvidedForThisToken mismatch");
+        }
+    }
 
 
     //*************** Swap */
@@ -685,7 +686,7 @@ contract IDexTest is Test {
     function seedHelp () internal {
         address usdc = networkConfig.getUSDCContract();
         address eth = networkConfig.getETHContract();
-        uint256 usdc$ = 8010e6;
+        uint256 usdc$ = 8000e6;
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
         deal(address(eth), address(this), eth$);
