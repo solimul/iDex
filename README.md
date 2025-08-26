@@ -1,5 +1,3 @@
-
-```
 # IDex
 
 IDex is a lightweight decentralized exchange (DEX) written in Solidity. It implements a constant-product AMM for ETH–USDC swaps, with modular contracts for liquidity provisioning, LP tokenization, and swap fee handling to support pool growth and protocol rewards. The system is thoroughly guarded against reentrancy and access control attack vectors.
@@ -95,4 +93,3 @@ Covers:
 - Deposit/withdraw flows and LP accounting.  
 - Protocol reward accrual and distribution.  
 - Parameter validation and edge cases.  
-```
