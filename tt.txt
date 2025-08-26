@@ -1,0 +1,93 @@
+Compiling 7 files with Solc 0.8.30
+Solc 0.8.30 finished in 5.09s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:462:17:
+    |
+462 |                 uint256 amount0,
+    |                 ^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:463:17:
+    |
+463 |                 uint256 lp0,
+    |                 ^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:515:17:
+    |
+515 |                 uint256 amount0,
+    |                 ^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:516:17:
+    |
+516 |                 uint256 lp0,
+    |                 ^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:583:17:
+    |
+583 |                 uint256 providerProvidedForThisToken0
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:594:17:
+    |
+594 |                 uint256 providerProvidedForThisToken1
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:726:9:
+    |
+726 |         uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+    |         ^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:742:9:
+    |
+742 |         uint256 quotedETH = dex.quoteOutAmount(swapUSDC, "USDC", "WETH");
+    |         ^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:763:13:
+    |
+763 |             address swapper0,
+    |             ^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:764:13:
+    |
+764 |             address tokenIn0,
+    |             ^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:766:13:
+    |
+766 |             uint256 amountOut0,
+    |             ^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:767:13:
+    |
+767 |             uint256 swapFee0,
+    |             ^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:787:13:
+    |
+787 |             address swapper1,
+    |             ^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/MinimalDex.t.sol:788:13:
+    |
+788 |             address tokenIn1,
+    |             ^^^^^^^^^^^^^^^^
+
+
+Ran 1 test for test/unit/MinimalDex.t.sol:IDexTest
+[PASS] testDeposit_StateUpdateUSDC_ManyProviders() (gas: 2487294)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 10.84ms (8.33ms CPU time)
+
+Ran 1 test suite in 12.82ms (10.84ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

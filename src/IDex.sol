@@ -407,16 +407,20 @@ contract IDex is ReentrancyGuard {
     nonReentrant
     external {
 
+
         uint256 usdcReserve = pool.getBalance(i_usdcContract);
         uint256 ethReserve = pool.getBalance(i_wethContract);
         uint256 totalUelpSupply = merc20.totalSupply();
 
         uint256 lp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
+     
+
         // check
         if (lp == 0) 
             revert error_UelpAmountIsZero();
         //Effect
         liqudityProvision.updateLiquidityRecord(msg.sender, lp);
+
         // Interactions (+effect)
         addLiquidityFrom(msg.sender, USDC_STR, _usdc, lp, true);
         addLiquidityFrom(msg.sender, WETH_STR, _eth, lp, false);

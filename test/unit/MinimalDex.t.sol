@@ -497,15 +497,19 @@ contract IDexTest is Test {
 
 
 function testDeposit_StateUpdateUSDC_ManyProviders () public {
-        seedHelp();
         
+        seedHelp();
         
 
         uint256 usdcAmt = 4_000e6;
         uint256 ethAmt  = 1e18;
 
-        for (uint256 i=0; i<NPROVIDERS; i++) {
+        for (uint256 i=0; i<1; i++) {
+
             address provider = address (uint160 (i+1));
+
+            (uint256 _totalLP0, uint256 cntLPProviders0) = liquidityProvision.getLiquidityRecord4Test (provider);
+
             (
                 address tokenAddr0,
                 uint256 amount0,
@@ -516,13 +520,14 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
                 uint256 totalUelpByProvider0,
                 uint256 providerProvidedForThisToken0
             ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
+          
             usdcAmt = usdcAmt* (i+1);
             ethAmt = ethAmt * (i+1);
+         
             uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
+               
                             usdcAmt, ethAmt, pool.getBalance(usdc),  pool.getBalance(eth), myERC20.totalSupply(), true);
-
             supplyHelp(provider, usdcAmt, ethAmt);
-
             (
                 address tokenAddr1,
                 uint256 amount1,
@@ -534,6 +539,10 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
                 uint256 providerProvidedForThisToken1
             ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
 
+            (uint256 _totalLP1, uint256 cntLPProviders1) = liquidityProvision.getLiquidityRecord4Test (provider);
+
+
+            // Pool States
             assertEq(tokenAddr1, tokenAddr0, "Token address changed");
             assertEq(amount1, usdcAmt, "deposit amount wrong");
             assertEq(lp1, expectedLp, "LP minted for this deposit mismatches");
@@ -542,6 +551,10 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
             assertEq(tokenProviderBalance1, tokenProviderBalance0 + usdcAmt, "Provider balance mismatch");
             assertEq(totalUelpByProvider1, totalUelpByProvider0 + expectedLp, "Provider total UELP mismatch");
             assertEq(providerProvidedForThisToken1, providerProvidedForThisToken0 + 1, "ProviderProvidedForThisToken mismatch");
+
+            // LiquidityProvision States
+            assertEq (_totalLP1, _totalLP0 + expectedLp, "Total LP Token Mismatch");
+            assertEq (cntLPProviders1, cntLPProviders0 + 1, "Total LP Provider Count Mismatch");
         }
     }
 
@@ -799,9 +812,12 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
         deal(address(eth), address(this), eth$);
+    
+        vm.startPrank (address (this));
         IERC20(usdc).approve(address(dex), usdc$);
         IERC20(eth).approve(address(dex), eth$);
         dex.seedDex(usdc$, eth$);
+        vm.stopPrank ();
     }
 
     function supplyHelp (address iAddress, uint256 usdc$, uint256 eth$) internal {

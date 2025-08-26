@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {console} from "../lib/forge-std/src/console.sol";
+
 import {BabylonianLib} from "./libs/BabylonianLib.sol";
 import {IDex} from "./IDex.sol";
 
@@ -56,8 +58,9 @@ contract LiquidityProvision {
     ) 
     external
     onlyFacade {
-        totalLP [_provider] += _lp;        
-        lpProviders.push (_provider);
+        if (totalLP [_provider] == 0)
+            lpProviders.push (_provider);
+        totalLP [_provider] += _lp;      
     }
 
     function calculateUelpForMinting 
@@ -107,6 +110,8 @@ contract LiquidityProvision {
     external
     view
     returns (uint256 _totalLP, uint256 cntLPProviders) {
+        if (totalLP [_provider] == 0)
+            return (0, lpProviders.length);
         (_totalLP, cntLPProviders) = (totalLP [_provider], lpProviders.length);       
     }
 }
