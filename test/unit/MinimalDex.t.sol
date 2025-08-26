@@ -140,10 +140,14 @@ contract IDexTest is Test {
     string constant LPTOKEN_SYMBOL = "UELP";
 
     uint256 constant NPROVIDERS = 5;
+
+    address usdc;
+    address eth;
     // ---------- setup ----------
     function setUp() public {
         networkConfig = new NetworkConfig();
-
+        usdc = networkConfig.getUSDCContract();
+        eth = networkConfig.getETHContract();
         dex = new IDex
             (
                 networkConfig.getUSDCContract(),
@@ -195,8 +199,6 @@ contract IDexTest is Test {
     }
 
     function testSetSwapFeePct_RevertAbove100() public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
         vm.expectRevert();
         new IDex(
             usdc,
@@ -213,8 +215,8 @@ contract IDexTest is Test {
 
 
     function testSetProtocolFeePct_RevertAbove100() public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         vm.expectRevert();
         new IDex(
             usdc,
@@ -230,8 +232,8 @@ contract IDexTest is Test {
     }
 
     function testSetMinLiquidityPpm_RevertAbove1e6() public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         vm.expectRevert();
         new IDex(
             usdc,
@@ -247,8 +249,8 @@ contract IDexTest is Test {
     }
 
     function testSetWithdrawCooldown_RevertZero() public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         vm.expectRevert();
         new IDex(
             usdc,
@@ -265,8 +267,8 @@ contract IDexTest is Test {
 
     // ---------- liquidity: first deposit ----------
     function testDeposit_FirstDepositorBalnceUpdate () public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 4000e6;
         uint256 eth$ = 1e18;
         deal(address(usdc), address(this), usdc$);
@@ -299,8 +301,8 @@ contract IDexTest is Test {
 
     function testDeposit_SupplyLiquidityBalnceUpdateWithSeeding () public {
         testDeposit_FirstDepositorBalnceUpdate ();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 8010e6;
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
@@ -331,8 +333,8 @@ contract IDexTest is Test {
     }
 
     function testDeposit_SupplyLiquidityWithoutSeeding () public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 8010e6;
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
@@ -345,8 +347,8 @@ contract IDexTest is Test {
     }
 
     function testDeposit_FirstDepositorWrongAmount () public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 0;
         uint256 eth$ = 0;
         deal(address(usdc), address(this), usdc$);
@@ -359,8 +361,8 @@ contract IDexTest is Test {
 
        function testDeposit_SupplyLiquidityWrongAmount () public {
         testDeposit_FirstDepositorBalnceUpdate ();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 0;
         uint256 eth$ = 0;
         deal(address(usdc), address(this), usdc$);
@@ -372,8 +374,8 @@ contract IDexTest is Test {
     }
 
     function testDeposit_DoubleSeed () public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 8010e6;
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
@@ -386,9 +388,6 @@ contract IDexTest is Test {
     }
 
     function testDeposit_FirstDepositorStateUpdate() public {
-        address usdc = networkConfig.getUSDCContract();
-        address eth  = networkConfig.getETHContract();
-
         uint256 usdcAmt = 4_000e6;
         uint256 ethAmt  = 1e18;
 
@@ -413,7 +412,7 @@ contract IDexTest is Test {
                 uint256 tokenProviderBalance,
                 uint256 totalUelpByProvider,
                 uint256 providerProvidedForThisToken
-            ) = pool.getPoolRecord4ProvidenceTest(address(this), usdc);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(address(this), usdc);
 
             assertEq(tokenAddr, usdc);
             assertEq(amount, usdcAmt);
@@ -435,7 +434,7 @@ contract IDexTest is Test {
                 uint256 tokenProviderBalance,
                 uint256 totalUelpByProvider,
                 uint256 providerProvidedForThisToken
-            ) = pool.getPoolRecord4ProvidenceTest(address(this), eth);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(address(this), eth);
 
             assertEq(tokenAddr, eth);
             assertEq(amount, ethAmt);
@@ -451,8 +450,8 @@ contract IDexTest is Test {
 
     function testDeposit_StateUpdateUSDC_ManyProvidences () public {
         seedHelp();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
 
         uint256 usdcAmt = 4_000e6;
         uint256 ethAmt  = 1e18;
@@ -467,7 +466,7 @@ contract IDexTest is Test {
                 uint256 tokenProviderBalance0,
                 uint256 totalUelpByProvider0,
                 uint256 providerProvidedForThisToken0
-            ) = pool.getPoolRecord4ProvidenceTest(address(this), usdc);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(address(this), usdc);
             usdcAmt = usdcAmt* (i+1);
             ethAmt = ethAmt * (i+1);
             uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
@@ -483,7 +482,7 @@ contract IDexTest is Test {
                 uint256 tokenProviderBalance1,
                 uint256 totalUelpByProvider1,
                 uint256 providerProvidedForThisToken1
-            ) = pool.getPoolRecord4ProvidenceTest(address(this), usdc);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(address(this), usdc);
 
             assertEq(tokenAddr1, tokenAddr0, "Token address changed");
             assertEq(amount1, usdcAmt, "deposit amount wrong");
@@ -499,8 +498,8 @@ contract IDexTest is Test {
 
 function testDeposit_StateUpdateUSDC_ManyProviders () public {
         seedHelp();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
 
         uint256 usdcAmt = 4_000e6;
         uint256 ethAmt  = 1e18;
@@ -516,7 +515,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
                 uint256 tokenProviderBalance0,
                 uint256 totalUelpByProvider0,
                 uint256 providerProvidedForThisToken0
-            ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
             usdcAmt = usdcAmt* (i+1);
             ethAmt = ethAmt * (i+1);
             uint256 expectedLp = liquidityProvision.calculateUelpForMinting(
@@ -533,7 +532,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
                 uint256 tokenProviderBalance1,
                 uint256 totalUelpByProvider1,
                 uint256 providerProvidedForThisToken1
-            ) = pool.getPoolRecord4ProvidenceTest(provider, usdc);
+            ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
 
             assertEq(tokenAddr1, tokenAddr0, "Token address changed");
             assertEq(amount1, usdcAmt, "deposit amount wrong");
@@ -546,14 +545,71 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
         }
     }
 
+    function testWithdraw_Liquidity_Balance_Status_Update () public {
+        seedHelp ();
+        supplyMultipleHelp ();
+        address provider = address (uint160 (1));
+        uint256 lpBal = myERC20.balanceOf(provider);
+        uint256 sharePct = (lpBal * HUNDRED) / myERC20.totalSupply();
+
+        uint256 poolBalU0 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 poolBalE0 = IERC20 (eth).balanceOf (address (pool));
+
+        uint256 providerBalU0 = IERC20 (usdc).balanceOf (provider);
+        uint256 providerBalE0 = IERC20 (eth).balanceOf (provider);
+
+        uint256 lpTotalSupply0 = myERC20.totalSupply ();
+
+
+        (
+                ,
+                ,
+                ,
+                ,
+                uint256 totalBalanceByToken0,
+                uint256 tokenProviderBalance0,
+                uint256 totalUelpByProvider0,
+                uint256 providerProvidedForThisToken0
+        ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
+
+        vm.warp (WITHDRAW_COOLDOWN + 1 days);
+        withdrawLiquidityHelp (provider, lpBal);
+
+        (
+                , , , ,
+                uint256 totalBalanceByToken1,
+                uint256 tokenProviderBalance1,
+                uint256 totalUelpByProvider1,
+                uint256 providerProvidedForThisToken1
+        ) = pool.getPoolRecord4ProvidenceWithdrawTest(provider, usdc);
+
+        uint256 poolBalU1 = IERC20 (usdc).balanceOf (address (pool));
+        uint256 poolBalE1 = IERC20 (eth).balanceOf (address (pool));
+        uint256 providerBalU1 = IERC20 (usdc).balanceOf (provider);
+        uint256 providerBalE1 = IERC20 (eth).balanceOf (provider);
+        uint256 lpTotalSupply1 = myERC20.totalSupply ();
+
+        // balances
+        assertEq(poolBalU1, poolBalU0 - (poolBalU0 * sharePct) / HUNDRED, "pool USDC balance mismatch");
+        assertEq(poolBalE1, poolBalE0 - (poolBalE0 * sharePct) / HUNDRED, "pool ETH balance mismatch");
+        assertEq(providerBalU1, providerBalU0 + (poolBalU0 * sharePct) / HUNDRED, "provider USDC balance mismatch");
+        assertEq(providerBalE1, providerBalE0 + (poolBalE0 * sharePct) / HUNDRED, "provider ETH balance mismatch");
+        assertEq(lpTotalSupply1, lpTotalSupply0 - lpBal, "LP total supply mismatch");
+
+        // state
+        assertEq(totalBalanceByToken1, totalBalanceByToken0 - (poolBalU0 * sharePct) / HUNDRED, "totalBalanceByToken mismatch");
+        assertEq(tokenProviderBalance1, tokenProviderBalance0 - (poolBalU0 * sharePct) / HUNDRED, "tokenProviderBalance mismatch");
+        assertEq(totalUelpByProvider1, totalUelpByProvider0 - lpBal, "totalUelpByProvider mismatch");
+    }
+
 
     //*************** Swap */
 
     function testSwapETH4USDCBalanceUpdate () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 uPoolBalance0 = IERC20 (usdc).balanceOf (address (pool));
         uint256 ePoolBalance0 = IERC20 (eth).balanceOf (address (pool));
 
@@ -593,8 +649,8 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     function testSwapUSDC4ETHBalanceUpdate () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
 
         uint256 uPoolBalance0 = IERC20 (usdc).balanceOf (address (pool));
         uint256 ePoolBalance0 = IERC20 (eth).balanceOf (address (pool));
@@ -636,7 +692,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     function testSwapWrongToken () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
+        
         address swapper = address (uint160 (1));
 
         uint256 swapUSDC = 4000e6;
@@ -652,7 +708,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     function testSwapWrongAmount () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
+        
         address swapper = address (uint160 (1));
 
         uint256 swapUSDC = 4000e6;
@@ -668,7 +724,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     function testSwapSamePair () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
+        
         address swapper = address (uint160 (1));
 
         uint256 swapUSDC = 4000e6;
@@ -684,11 +740,11 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     function testSwap_StateUpdates () public {
         seedHelp ();
         supplyMultipleHelp ();
-        address usdc = networkConfig.getUSDCContract();
+        
 
         address swapper = address (this);
 
-        address eth = networkConfig.getETHContract();
+        
         (
             uint256 balanceIn0,
             uint256 balanceOut0,
@@ -737,8 +793,8 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     // *** Helper Functions ***
 
     function seedHelp () internal {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         uint256 usdc$ = 8000e6;
         uint256 eth$ = 2e18;
         deal(address(usdc), address(this), usdc$);
@@ -749,8 +805,8 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     }
 
     function supplyHelp (address iAddress, uint256 usdc$, uint256 eth$) internal {
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         deal(address(usdc), address(iAddress), usdc$);
         deal(address(eth), address(iAddress), eth$);
         vm.startPrank(iAddress);
@@ -777,8 +833,8 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     {
         uint256 uBase = 5000e6;
         uint256 eBase = 1e18;
-        address usdc = networkConfig.getUSDCContract();
-        address eth = networkConfig.getETHContract();
+        
+        
         for (uint256 i=1; i<=NPROVIDERS; i++) {
             address iAddress = address (uint160 (i));
             uBalance0 [i-1] = IERC20 (usdc).balanceOf (address (pool));
@@ -798,9 +854,6 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
     }
 
     function _supplyAsHelp(address who, uint256 usdcAmt, uint256 ethAmt) internal {
-        address usdc = networkConfig.getUSDCContract();
-        address eth  = networkConfig.getETHContract();
-
         deal(usdc, who, usdcAmt);
         deal(eth,  who, ethAmt);
 
@@ -808,6 +861,13 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
         IERC20(usdc).approve(address(dex), usdcAmt);
         IERC20(eth).approve(address(dex), ethAmt);
         dex.supplyLiquidity(usdcAmt, ethAmt);
+        vm.stopPrank();
+    }
+
+    function withdrawLiquidityHelp (address _provider, uint256 lpBalance) internal {
+        vm.startPrank(_provider);
+        myERC20.approve(address(dex), lpBalance);
+        dex.withdrawLiquidity (lpBalance);
         vm.stopPrank();
     }
 

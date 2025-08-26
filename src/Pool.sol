@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {console} from "../lib/forge-std/src/Test.sol";
+
 import {LiquidityRecord, SwapRecord, ProtocolFeeDetails} from "./Shared.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IDex} from "./IDex.sol";
@@ -187,7 +189,6 @@ contract Pool is ReentrancyGuard{
         lastWithdrawTime [_provider] = time;
 
         emit TokenWithdrawnFromPool (_tokenStr, _token, _provider, _amount, providerCounts [_token], time);
-
     }
 
 
@@ -229,7 +230,7 @@ contract Pool is ReentrancyGuard{
         emit NativeETHReceived (msg.sender, msg.value);
     }
 
-    function getPoolRecord4ProvidenceTest 
+    function getPoolRecord4ProvidenceWithdrawTest 
     (
         address _provider,
         address _token
@@ -258,6 +259,7 @@ contract Pool is ReentrancyGuard{
         amount = recordByToken.amount;
         lp = recordByToken.lp;
         tokenProviderBalance = tokenToTotalProvidenceByProviders [_provider] [_token];
+        //console.log ("-------------> ", tokenProviderBalance);
         totalUelpByProvider = totalUelpReceived [_provider];
         providerProvidedForThisToken = tokenProviders[_token] [_provider];
     }
