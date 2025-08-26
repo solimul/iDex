@@ -545,7 +545,7 @@ function testDeposit_StateUpdateUSDC_ManyProviders () public {
         }
     }
 
-    function testWithdraw_Liquidity_Balance_Status_Update () public {
+    function testWithdraw_Liquidity_Balance_States_Update () public {
         seedHelp ();
         supplyMultipleHelp ();
         address provider = address (uint160 (1));
