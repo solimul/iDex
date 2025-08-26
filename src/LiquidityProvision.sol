@@ -17,6 +17,7 @@ contract LiquidityProvision {
 
 
     mapping (address => uint256) private totalLP;
+    mapping (address => uint256) private providerIndex;
     address [] private lpProviders;
     address private immutable iOwner;
     IDex private facade;
@@ -58,9 +59,12 @@ contract LiquidityProvision {
     ) 
     external
     onlyFacade {
-        if (totalLP [_provider] == 0)
+        if (providerIndex [_provider] == 0){
             lpProviders.push (_provider);
-        totalLP [_provider] += _lp;      
+        }
+        totalLP [_provider] += _lp;
+        providerIndex [_provider] = lpProviders.length-1;      
+
     }
 
     function calculateUelpForMinting 
@@ -93,6 +97,10 @@ contract LiquidityProvision {
         facade = IDex (payable (_idexAddress));
     }
 
+    function doesProviderExist ( address _provider) public view returns (uint256) {
+        return providerIndex [_provider];
+    }
+
     function getLPByProvider 
     (
         address _provider
@@ -110,7 +118,7 @@ contract LiquidityProvision {
     external
     view
     returns (uint256 _totalLP, uint256 cntLPProviders) {
-        if (totalLP [_provider] == 0)
+        if (providerIndex [_provider] == 0)
             return (0, lpProviders.length);
         (_totalLP, cntLPProviders) = (totalLP [_provider], lpProviders.length);       
     }

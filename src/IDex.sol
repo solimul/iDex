@@ -76,6 +76,8 @@ contract IDex is ReentrancyGuard {
     error error_WithdrawCooldownZero();
     error error_AmountIsZero ();
 
+    error error_ProviderNotRegistered ();
+
 
 
     bool public seeded;
@@ -84,7 +86,7 @@ contract IDex is ReentrancyGuard {
     
 
     Pool private pool;
-    LiquidityProvision private liqudityProvision;
+    LiquidityProvision private liquidityProvision;
     ProtocolReward private protocolReward;
     MyERC20 private merc20;
 
@@ -166,7 +168,7 @@ contract IDex is ReentrancyGuard {
     }
 
     modifier liquidityProvisionIsSet() {
-        if (address(liqudityProvision) == address(0))
+        if (address(liquidityProvision) == address(0))
             revert error_InvalidLiquidityProvisionAddress();
         _;
     }
@@ -364,14 +366,14 @@ contract IDex is ReentrancyGuard {
     onlyOwner 
     checkNotSeeded 
     nonReentrant {
-        uint256 lp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
+        uint256 lp = liquidityProvision.calculateUelpForMinting(_usdc, _eth, 0, 0, 0, seeded);  
         // check
         if (lp == 0)
             revert error_UelpAmountIsZero ();
         
         //effect
         seeded = true;
-        liqudityProvision.updateLiquidityRecord (msg.sender, lp);     
+        liquidityProvision.updateLiquidityRecord (msg.sender, lp);     
         
         // Interactions (+ effects)
         addLiquidityFrom( msg.sender, USDC_STR, _usdc, lp, true);
@@ -412,14 +414,14 @@ contract IDex is ReentrancyGuard {
         uint256 ethReserve = pool.getBalance(i_wethContract);
         uint256 totalUelpSupply = merc20.totalSupply();
 
-        uint256 lp = liqudityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
+        uint256 lp = liquidityProvision.calculateUelpForMinting(_usdc, _eth, usdcReserve , ethReserve, totalUelpSupply, seeded);
      
 
         // check
         if (lp == 0) 
             revert error_UelpAmountIsZero();
         //Effect
-        liqudityProvision.updateLiquidityRecord(msg.sender, lp);
+        liquidityProvision.updateLiquidityRecord(msg.sender, lp);
 
         // Interactions (+effect)
         addLiquidityFrom(msg.sender, USDC_STR, _usdc, lp, true);
@@ -440,6 +442,17 @@ contract IDex is ReentrancyGuard {
         uint256 lpBalance = merc20.balanceOf(msg.sender);
         if (lpBalance == 0)
             revert error_OnlyLPTokenHoldersCanAccessThisFunction ();
+
+        /**
+        * Fix: Prevents non-original providers (who only acquired LP tokens via transfer) 
+        * from withdrawing liquidity. Thus, turning UELP non-fungible. This ensures provider accounting structures remain consistent.
+        *
+        * TODO: Implement LP token transfer hooks (e.g. in ERC20 `transfer` / `transferFrom`)
+        * to update provider records (`totalUelpReceived`, `tokenToTotalProvidenceByProviders`, etc.)
+        * so that LP tokens regain fungibility and any holder can withdraw liquidity.
+        */
+        if (liquidityProvision.doesProviderExist (msg.sender) == 0)
+            revert error_ProviderNotRegistered ();
         if (lpBalance < _lp)
             revert error_LPBalanceTooLow ();
         uint256 sharePct = (_lp * HUNDRED) / merc20.totalSupply();
@@ -530,7 +543,7 @@ contract IDex is ReentrancyGuard {
         address _lpTokenAddress
     ) external onlyOwner(){
         pool = Pool (payable (_poolAddress));
-        liqudityProvision = LiquidityProvision (_lpAddress);
+        liquidityProvision = LiquidityProvision (_lpAddress);
         protocolReward =  ProtocolReward (payable (_protocolReward));
         merc20 = MyERC20 (_lpTokenAddress);
     }
@@ -605,7 +618,7 @@ contract IDex is ReentrancyGuard {
     external 
     view 
     returns (address, address, address, address ){
-        return (address (pool), address (liqudityProvision), address (protocolReward), address (merc20));
+        return (address (pool), address (liquidityProvision), address (protocolReward), address (merc20));
     }
 
     function getConfigForTest()
