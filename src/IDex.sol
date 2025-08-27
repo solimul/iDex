@@ -650,4 +650,21 @@ contract IDex is ReentrancyGuard {
     function getLPBalanceByProvider () public view returns (uint256) {
         return merc20.balanceOf(msg.sender);
     }
+
+    function isSeeded () public view returns (bool) {
+        return seeded;
+    }
+
+    function isApproved 
+    (
+        string memory _tokenStr, 
+        uint256 _amount
+    ) 
+    external 
+    view
+    validTokens (_tokenStr) 
+    returns (bool) {
+        IERC20 token = IERC20 (tokenMap [_tokenStr]);
+        return _amount <= token.allowance(msg.sender, address(this));
+    }
 }

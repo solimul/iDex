@@ -55,7 +55,7 @@ contract NetworkConfig {
 
         } else if (block.chainid == 11155111) {  // sepolia
             i_usdc = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 ; // USDC
-            i_eth = 0xdd13E55209Fd76AfE204dBda4007C227904f0a81; // WETH
+            i_eth = 0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9; // WETH
             /** 
              * Token	Faucet
                     USDC	https://sepoliafaucet.com/ or from Aave/Gelato testnet UI

@@ -70,11 +70,13 @@ const supportedChainInfo: Record<string, ChainInfo> = {
 
 
 
-const contractAddress: Address = getAddress(MY_CONTRACT_ABI);
+const contractAddress: Address = getAddress(MY_CONTRACT_ADDRESS);
 const abi = MY_CONTRACT_ABI;
 const network:string = NETWORK;
 
 const KEY_CONNECTED = "idex_connected";
+
+let poolSeeded = false as boolean;
 
 
 //ConenctWallet
@@ -149,13 +151,14 @@ let publicClient: PublicClient | null = null;
 let connectedAccount: `0x${string}` | null = null;
 
 // /** generic function */
-async function readContract<T>(funName: string, requiresAccount: boolean): Promise<T> {
+async function readContract<T>(funName: string, requiresAccount: boolean, requiresArg: boolean, _args: any[] = []): Promise<T> {
     await setUpPublicClients();
     if (requiresAccount)
         await setUpWalletClients();
 
     return await publicClient!.readContract({
         address: contractAddress,
+        ...(requiresArg && {args:_args}),
         abi: abi,
         functionName: funName,
         ...(requiresAccount && { account: connectedAccount! })
@@ -168,7 +171,7 @@ async function readContract<T>(funName: string, requiresAccount: boolean): Promi
     });
 }
 
-async function writeContract(funName: string, requiresValue: boolean = false, value: bigint = 0n, args: any[] = []): Promise<`0x${string}`> {
+async function writeContract(funName: string, args: any[] = []): Promise<`0x${string}`> {
     await setUpPublicClients();
     await setUpWalletClients();
 
@@ -180,7 +183,6 @@ async function writeContract(funName: string, requiresValue: boolean = false, va
         args: args,
         chain: currentChain,
         account: connectedAccount,
-        ...(requiresValue && { value: value })
     }).catch(error => {
         const reason = error?.walk?.()?.shortMessage || "Read failed";
         console.log (reason);
@@ -291,16 +293,19 @@ async function restoreConnection ():Promise <void> {
 async function kpiFetchFeed(): Promise<void> {
     const [usdcReserve, ethReserve] = await readContract<[bigint, bigint]>(
       "getReserves",
+      false,
       false
     ) as [bigint, bigint];
   
     const [usdcFees, ethFees] = await readContract<[bigint, bigint]>(
       "getAccruedSweepFees",
+      false,
       false
     ) as [bigint, bigint];
   
     const exchangeRate = await readContract<bigint>(
       "getPoolExchangeRate",
+      false,
       false
     ) as bigint | undefined;;
   
@@ -315,22 +320,87 @@ async function kpiFetchFeed(): Promise<void> {
       if (addrs.length > 0) {
         const yourUelp = await readContract<bigint>(
           "getLPBalanceByProvider",
-          true
+          true,
+          false
         ) as bigint;
         kpiUelp.innerText = formatEther(yourUelp);
       }
     }
 }
 
+function setProviderBtn () {
+    btnProvide.innerText = (!poolSeeded? "Seed": "Depost") as string; 
+}
+
+async function provideLiquidity (): Promise <void> {
+    const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
+    const ethAmnt = parseEther (liqEth.value ) as bigint;
+    if (usdcAmnt <= 0 || ethAmnt <=0){
+        liqStatus.innerText = "Both amount has to be non-zero";
+        return;
+    }
+
+    await setUpWalletClients ();
+    await setUpPublicClients ();
+        
+    let providerFun = (!poolSeeded ? "seedDex" : "supplyLiquidity") as string; 
+
+    const usdcApproved = await readContract ("isApproved",true,true, ["USDC",usdcAmnt ]) as boolean;
+    const ethApproved = await readContract ("isApproved",true,true, ["WETH", ethAmnt ]) as boolean;
+    console.log ("=====>", usdcApproved, ethApproved);
+    if (usdcApproved && ethApproved) {
+        const hash = await writeContract (providerFun, [usdcAmnt, ethAmnt]);
+        const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+        let msg:string = !poolSeeded ? "Seeding Successful!" : "Depost Successful!";
+        if (receipt.status !== 'success')
+             msg = !poolSeeded ? "Seeding Failed!" : "Depost Failed!";
+        else 
+            poolSeeded = true;
+        liqStatus.innerText = msg;
+    }
+    else {
+        liqStatus.innerText = "Please approve both USDC and ETH";
+    }
+    kpiFetchFeed ();
+    setProviderBtn ();
+}
+
+
 
 async function approveETH ():Promise <void> {
     const ethAmnt = parseEther(liqEth.value ) as bigint;
+    if (ethAmnt <=0){
+        liqStatus.innerText = "ETH amount has to be non-zero for approval";
+        return;
+    }
+    
+    await setUpWalletClients ();
+
     const hash = await approveToken (WETH_CONTRACT_ADDRESS, ethAmnt) as `0x${string}`;
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    let msg:string =  liqEth.value+" ETH has been approved!";
+    if (receipt.status !== 'success')
+        msg = "ETH approval failed!";
+    liqStatus.innerText = msg;
 }
 
 async function approveUSDC ():Promise <void> {
     const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
+    console.log ("--------->", usdcAmnt);
+
+    if (usdcAmnt <=0){
+        liqStatus.innerText = "USDC amount has to be non-zero for approval";
+        return;
+    }
+    await setUpWalletClients ();
+
     const hash = await approveToken (USDC_CONTRACT_ADDRESS, usdcAmnt) as `0x${string}`;
+
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    let msg:string =  liqUsdc.value+" USDC has been approved!";
+    if (receipt.status !== 'success')
+        msg = "USDC approval failed!";
+    liqStatus.innerText = msg;
 }
 
 async function approveToken(tokenAddress:`0x${string}`, amount: bigint): Promise<`0x${string}`> {
@@ -350,8 +420,9 @@ async function approveToken(tokenAddress:`0x${string}`, amount: bigint): Promise
 
 
 function parseUsdc(input: string): bigint {
-    const value = BigInt(input);
-    return value * 10n ** 6n;
+    const [intPart, fracPart = ""] = input.split(".");
+    const frac = (fracPart + "000000").slice(0, 6);
+    return BigInt(intPart) * 10n ** 6n + BigInt(frac);
 }
   
 
@@ -492,14 +563,20 @@ function formatUsdc(amount: bigint): string {
 //     setUp();
 // }
 
-
+async function main () : Promise <void> {
+    poolSeeded = await readContract ("isSeeded",false, false) as boolean;
+    restoreConnection();
+    kpiFetchFeed ();
+    setProviderBtn ();
+}
 
 
 btnConnect.onclick = connect
-btnApproveEth.onclick = approveEth 
-btnApproveUsdc.onclick = approveUsdc
+btnApproveEth.onclick = approveETH 
+btnApproveUsdc.onclick = approveUSDC
+btnProvide.onclick = provideLiquidity
 // fundBtn.onclick = fund
 // withdrawFundsBtn.onclick = withdraw
 // main()
-restoreConnection();
-kpiFetchFeed ();
+
+main ();

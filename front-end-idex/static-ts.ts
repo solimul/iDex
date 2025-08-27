@@ -1,6 +1,6 @@
 // fundme-contract.ts
 
-export const MY_CONTRACT_ADDRESS = "0xd670fc0e913211539680a50aa51cecb55e33cce3";
+export const MY_CONTRACT_ADDRESS = "0xbabf43260983cef94174e25a28b8fb5e8bb0386c";
 export const NETWORK = "sepolia"
 export const USDC_CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 export const WETH_CONTRACT_ADDRESS = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9";
@@ -144,6 +144,23 @@ export const MY_CONTRACT_ABI = [
       "inputs": [],
       "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
       "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "isApproved",
+        "inputs": [
+          { "name": "_tokenStr", "type": "string", "internalType": "string" },
+          { "name": "_amount", "type": "uint256", "internalType": "uint256" }
+        ],
+        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+        "stateMutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "isSeeded",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+        "stateMutability": "view"
     },
     {
       "type": "function",
