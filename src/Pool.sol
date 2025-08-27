@@ -59,6 +59,7 @@ contract Pool is ReentrancyGuard{
 
     uint256 private swapsCount;
     uint256 private totalSwapFees;
+    mapping (address => uint256) private totalSwapFeesByToken;
 
 
     modifier onlyOwner () {
@@ -124,6 +125,7 @@ contract Pool is ReentrancyGuard{
         );
         swapsCount += 1;
         totalSwapFees += _swapFee;
+        totalSwapFeesByToken [_tokenIn] += _swapFee;
     }
 
     
@@ -303,6 +305,10 @@ contract Pool is ReentrancyGuard{
         swapFee = r.swapFee;
         _totalSwapFee = totalSwapFees;
         tokenIn = _tokenIn;
+    }
+
+    function getAccruedSwapFeesByToken (address _token) public view returns (uint256) {
+        return totalSwapFeesByToken [_token];
     }
     
 } 

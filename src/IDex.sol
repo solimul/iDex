@@ -636,4 +636,18 @@ contract IDex is ReentrancyGuard {
     function getProtocolFeePct () public view returns (uint256){
        return params.protocolFeePct; 
     }
+
+    function getReserves () public view returns (uint256 usdc, uint256 eth) {
+        usdc = pool.getBalance (tokenMap [USDC_STR]);
+        eth = pool.getBalance(tokenMap [WETH_STR]);
+    }
+
+    function getAccruedSweepFees () public view returns (uint256 usdcF, uint256 ethF) {
+        usdcF = pool.getAccruedSwapFeesByToken (tokenMap [USDC_STR]);
+        ethF = pool.getAccruedSwapFeesByToken (tokenMap [WETH_STR]);
+    }
+
+    function getLPBalanceByProvider () public view returns (uint256) {
+        return merc20.balanceOf(msg.sender);
+    }
 }
