@@ -145,7 +145,7 @@ contract IDexTest is Test {
     address eth;
     // ---------- setup ----------
     function setUp() public {
-        networkConfig = new NetworkConfig();
+        networkConfig = new NetworkConfig(address (this));
         usdc = networkConfig.getUSDCContract();
         eth = networkConfig.getETHContract();
         dex = new IDex
@@ -163,7 +163,7 @@ contract IDexTest is Test {
         liquidityProvision = new LiquidityProvision();
         pool = new Pool();
         protocolReward = new ProtocolReward();
-        myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL);
+        myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL, 18);
 
         dex.registerContracts ( address (pool), address (liquidityProvision), address(protocolReward), address (myERC20));
         pool.registerContracts(address (dex));

@@ -38,6 +38,8 @@ import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20
  */
 import {SafeERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {MyERC20} from "../mocks/MyERC20.sol";
+import {console} from "../lib/forge-std/src/console.sol";
+
 
 contract NetworkConfig {
 
@@ -47,12 +49,15 @@ contract NetworkConfig {
     MyERC20 private immutable i_MyERC20_usdc;
     MyERC20 private immutable i_MyERC20_eth;
 
-    constructor () {
+    constructor (address _user) {
         i_owner = msg.sender;
         if (block.chainid == 31337) { // test-net 
-            i_usdc = address(new MyERC20("Mock USDC", "mUSDC"));
-            i_eth = address(new MyERC20("Mock ETH", "mETH"));
-
+            i_usdc = address (new MyERC20("Mock USDC", "mUSDC",6));
+            i_eth = address (new MyERC20("Mock ETH", "mETH",18));
+            MyERC20 (i_usdc).mint (_user, 100_000_000 * 10 ** 6);
+            MyERC20 (i_eth).mint (_user, 100000 ether);
+            console.log ("i_usdc --->",i_usdc);
+            console.log ("i_eth --->",i_eth);
         } else if (block.chainid == 11155111) {  // sepolia
             i_usdc = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238 ; // USDC
             i_eth = 0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9; // WETH

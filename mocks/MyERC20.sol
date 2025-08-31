@@ -49,6 +49,8 @@ contract MyERC20 is ERC20 {
 
     IDex private facade;
 
+    uint8 immutable i_precision;
+
 
     modifier onlyOwner () {
     if (msg.sender != iOwner) 
@@ -64,12 +66,19 @@ contract MyERC20 is ERC20 {
     }
 
     /// @notice Creates a mock ERC20 token
-    /// @param name Token name
-    /// @param symbol Token symbol
-    constructor(string memory name, string memory symbol)
-        ERC20(name, symbol)
+    /// @param _name Token name
+    /// @param _symbol Token symbol
+    /// @param _precision Token decimal precision
+
+    constructor(string memory _name, string memory _symbol, uint8 _precision)
+        ERC20(_name, _symbol)
     {
         iOwner = msg.sender;
+        i_precision = _precision;
+    }
+
+    function decimals () public view override returns (uint8) {
+        return i_precision;
     }
 
     /// @notice Mints tokens to a specified address
@@ -117,6 +126,5 @@ contract MyERC20 is ERC20 {
 
     function registerContracts (address _idexAddress) external onlyOwner(){
         facade = IDex (payable (_idexAddress));
-    }
-    
+    }  
 }

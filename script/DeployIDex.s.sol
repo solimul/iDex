@@ -79,7 +79,7 @@ contract DeployIDex is Script {
     function run () external {
         uint256 deployerPrivateKey = get_private_key();
         vm.startBroadcast(deployerPrivateKey);
-            networkConfig = new NetworkConfig();
+            networkConfig = new NetworkConfig(msg.sender);
             iDex = new IDex
             (
                 networkConfig.getUSDCContract(),
@@ -95,10 +95,17 @@ contract DeployIDex is Script {
             liquidityProvision = new LiquidityProvision();
             pool = new Pool();
             protocolReward = new ProtocolReward();
-            myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL);
+            myERC20 = new MyERC20 (LPTOKEN_NAME, LPTOKEN_SYMBOL, 18);
             registerContracts ();
+            // if (block.chainid == ANVIL_CHAIN_ID)
+            //     mint_tokens (msg.sender, network.getUSDCContract (), network.getETHContract ());
         vm.stopBroadcast();
     }
+
+    // function mint_tokens (address user, address usdc, address eth) {
+
+
+    // }
 
     function registerContracts () internal {
         address iDexA = address (iDex);
