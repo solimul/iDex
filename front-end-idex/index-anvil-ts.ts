@@ -3,8 +3,9 @@
 //npm install -g pnpm
 // pnpm add node
 import { 
-    MY_CONTRACT_ADDRESS,
-    USDC_ERC20_ANVIL,  
+    MY_CONTRACT_ADDRESS, 
+    USDC_CONTRACT_ADDRESS, 
+    WETH_CONTRACT_ADDRESS, 
     MY_CONTRACT_ABI, 
     APPROVE_ABI, 
     NETWORK } from "./static-ts";
@@ -82,8 +83,7 @@ const network:string = NETWORK;
 
 const ANVIL_RPC = "http://127.0.0.1:8545";
 const ANVIL_CHAIN_ID_HEX = "0x7A69"; // 31337
-let USDC_CONTRACT_ADDRESS: `0x${string}`; 
-let WETH_CONTRACT_ADDRESS: `0x${string}`;
+
 
 
 const KEY_CONNECTED = "idex_connected";
@@ -196,10 +196,10 @@ async function writeContract(funName: string, args: any[] = []): Promise<`0x${st
         args: args,
         chain: currentChain,
         account: connectedAccount,
-    }).catch(error => {
-        const reason = error?.walk?.()?.shortMessage || "Read failed";
-        console.log (reason);
-    });
+    });//.catch(error => {
+    //     const reason = error?.walk?.()?.shortMessage || "Read failed";
+    //     console.log (reason);
+    // });
     return await walletClient!.writeContract(request) as `0x${string}`;
 }
 
@@ -437,8 +437,8 @@ async function loadFees () : Promise <void> {
 
 async function main () : Promise <void> {
     poolSeeded = await readContract ("isSeeded",false, false) as boolean;
-    USDC_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["USDC"]);
-    WETH_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["WETH"]);
+    // USDC_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["USDC"]);
+    // WETH_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["WETH"]);
 
     restoreConnection();
     kpiFetchFeed ();
@@ -459,12 +459,15 @@ async function swapTokenOutChanged ():Promise <void> {
 async function updateQuote ():Promise <void> {
     const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
     const quote = await getQuote (amount) as bigint;
-    console.log ("--------->",amount,quote, formatEther (quote) )
     swapEstimatedOut.value = (swapTokenIn.value === "USDC"? formatEther (quote) : formatUsdc (quote)) as string ;
 }
 async function getQuote (amount:bigint):Promise <bigint> {
     return await readContract ("quoteOutAmount",false, true, [amount, swapTokenIn.value, swapTokenOut.value ]) as bigint;
 }
+
+async function swap () : Promise <void>  {
+
+} 
 
 
 btnConnect.onclick = connect
@@ -474,6 +477,7 @@ btnProvide.onclick = provideLiquidity
 swapTokenIn.onchange = swapTokenInChanged;
 swapTokenOut.onchange = swapTokenOutChanged;
 btnQuote.onclick = updateQuote
+btnSwap.onclick = swap
 // fundBtn.onclick = fund
 // withdrawFundsBtn.onclick = withdraw
 // main()
