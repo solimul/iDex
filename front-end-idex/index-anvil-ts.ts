@@ -231,7 +231,7 @@ async function connect(): Promise<void> {
     btnConnect.innerText = account.slice(0, 6) + "..." + account.slice(-4);
     chainBadge.innerText =  supportedChainInfo[network].name;
     localStorage.setItem(KEY_CONNECTED, "1");
-    kpiFetchFeed ();
+    initFetchFeed ();
 }
 
 async function restoreConnection ():Promise <void> {
@@ -248,7 +248,7 @@ async function restoreConnection ():Promise <void> {
     chainBadge.innerText = supportedChainInfo[network].name;
 }
 
-async function kpiFetchFeed(): Promise<void> {
+async function initFetchFeed(): Promise<void> {
     const [usdcReserve, ethReserve] = await readContract<[bigint, bigint]>(
       "getReserves",
       false,
@@ -267,11 +267,11 @@ async function kpiFetchFeed(): Promise<void> {
       false
     ) as bigint | undefined;;
   
-    kpiUsdc.innerText = formatUsdc(usdcReserve);
-    kpiEth.innerText = formatEther(ethReserve);
-    kpiSwapFees.innerText = `${formatUsdc(usdcFees)} / ${formatEther(ethFees)}`;
+    kpiUsdc.innerText = setPrecision (formatUsdc (usdcReserve));
+    kpiEth.innerText = setPrecision (formatEther(ethReserve));
+    kpiSwapFees.innerText = `${setPrecision (formatUsdc(usdcFees))} / ${setPrecision (formatEther(ethFees))}`;
     if (exchangeRate !== undefined)
-            kpiPrice.innerText = exchangeRate.toString();
+            kpiPrice.innerText = setPrecision (exchangeRate.toString());
   
     if (localStorage.getItem(KEY_CONNECTED) === "1" && walletClient != null) {
       const addrs = await walletClient.getAddresses();
@@ -281,9 +281,26 @@ async function kpiFetchFeed(): Promise<void> {
           true,
           false
         ) as bigint;
-        kpiUelp.innerText = formatEther(yourUelp);
+        kpiUelp.innerText = setPrecision (formatEther(yourUelp));
       }
     }
+
+    refreshProviderFees ();
+}
+
+async function refreshProviderFees () : Promise <void> {
+    const [usdcFeesR, ethFeesR] = await readContract<[bigint, bigint]>(
+        "viewProtocolRewardBalanceByUser",
+        false,
+        false
+      ) as [bigint, bigint];
+    
+    feeUsdc.value = formatUsdc (usdcFeesR);
+    feeEth.value = formatEther (ethFeesR);
+}
+
+function setPrecision (numStr:string) {
+    return parseFloat (numStr).toFixed (2).toString ();
 }
 
 async function setUpWalletClients(): Promise<void> {
@@ -350,7 +367,7 @@ async function provideLiquidity (): Promise <void> {
     else {
         liqStatus.innerText = "Please approve both USDC and ETH";
     }
-    kpiFetchFeed ();
+    initFetchFeed ();
     setProviderBtn ();
 }
 
@@ -432,19 +449,14 @@ function formatUsdc(amount: bigint): string {
   
 
 
-async function loadFees () : Promise <void> {
-
-}
-
 async function main () : Promise <void> {
     poolSeeded = await readContract ("isSeeded",false, false) as boolean;
     // USDC_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["USDC"]);
     // WETH_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["WETH"]);
 
     restoreConnection();
-    kpiFetchFeed ();
+    initFetchFeed ();
     setProviderBtn ();
-    loadFees ();
 }
 
 async function swapTokenInChanged ():Promise <void> {
@@ -479,7 +491,7 @@ async function swap () : Promise <void>  {
         return;
     }
     if (slippage > 10) {
-        swapStatus.innerHTML = "slippage percentage must be less than "+slippageStr+"%";
+        swapStatus.innerHTML = "slippage must be less than 10%";
         return;
     }
     const slippageBps = BigInt(Math.floor(slippage * 100)); 
@@ -498,6 +510,46 @@ async function swap () : Promise <void>  {
     swapStatus.innerText = msg;
 } 
 
+async function claimFees (): Promise <void> {
+    const u = parseUsdc(feeUsdc.value) as bigint;
+    const e = parseEther(feeEth.value) as bigint;
+    if (u <=0 && e <= 0)
+        feeStatus.innerText = "Fees to withdraw is too low!"
+    const hash = await writeContract ("withdrawProtocolReawrd", [u, e]);
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    if (receipt.status !== 'success'){
+        swapStatus.innerText = "Withdrawal failed!";
+        return;
+    }
+    let suffix:string = u>0 ? feeUsdc.value + " USDC":"";
+    suffix += e>0 ? " and "+feeEth.value + " ETH": ""; 
+    const msg = "Withdrawn "+suffix+" to your wallet!" as string;
+    swapStatus.innerText = msg;
+}
+
+async function withdrawLiquidity (): Promise <void> {
+    const uelp = parseUsdc(wdUelp.value) as bigint;
+    if (uelp <=0)
+        wdStatus.innerText = "Withdrawal amount is too low!"
+    const lpTokenAddress = await readContract ("getMyERC20ContractAddress",false, false, []) as `0x${string}`;
+    console.log ("=====>", lpTokenAddress);
+    const approveHash = await approveToken(lpTokenAddress, uelp);
+
+    await publicClient!.waitForTransactionReceipt({ hash: approveHash });
+    
+    const hash = await writeContract ("withdrawLiquidity", [uelp]);
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    if (receipt.status !== 'success') {
+        wdStatus.innerText = "Withdrawal failed!";
+        return;
+    }
+    wdStatus.innerText = "Withdrawal successful!";
+}
+
+async function refreshFees () : Promise <void> {
+    refreshProviderFees ();
+}
+
 
 btnConnect.onclick = connect
 btnApproveEth.onclick = approveETH 
@@ -507,6 +559,9 @@ swapTokenIn.onchange = swapTokenInChanged;
 swapTokenOut.onchange = swapTokenOutChanged;
 btnQuote.onclick = updateQuote
 btnSwap.onclick = swap
+btnClaimFees.onclick = claimFees
+btnWithdraw.onclick = withdrawLiquidity 
+btnRefreshFees.onclick = refreshFees
 // fundBtn.onclick = fund
 // withdrawFundsBtn.onclick = withdraw
 // main()

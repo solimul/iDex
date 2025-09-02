@@ -4,9 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>iDex • Minimal AMM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0b0f14;
@@ -19,281 +16,165 @@
       --danger: #ef4444;
       --warning: #f59e0b;
       --success: #22c55e;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 18px;
+      --radius: 16px;
     }
-    html, body { height: 100%; }
     body {
-      margin: 0; background: radial-gradient(1200px 800px at 10% -10%, #14202c 0%, #0b0f14 50%), var(--bg);
-      color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
-      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, sans-serif;
     }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 18px 60px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap: 16px; margin-bottom: 24px; }
-    .brand { display:flex; align-items:center; gap:12px; }
-    .logo {
-      width: 38px; height: 38px; border-radius: 12px;
-      background: linear-gradient(135deg, #7cc8ff 0%, #6ee7b7 100%);
-      box-shadow: 0 8px 20px rgba(124,200,255,.35), inset 0 0 22px rgba(255,255,255,.25);
-    }
-    .brand h1 { font-size: 18px; margin: 0; letter-spacing:.2px; }
-    .sub { color: var(--muted); font-size: 12px; margin-top:2px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    header { display:flex; justify-content:space-between; margin-bottom: 20px; }
+    .kpis { display:grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 20px; }
+    .kpi { background: var(--card); border:1px solid var(--card-border); border-radius: var(--radius); padding: 14px; }
+    .kpi .title { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .kpi .value { font-size: 16px; font-weight: bold; }
 
-    .btn { cursor:pointer; padding: 10px 14px; border:1px solid var(--card-border); border-radius: 12px; background: var(--card); color: var(--text);
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: all .2s ease; display:inline-flex; gap:10px; align-items:center;
-    }
-    .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.18); }
-    .btn.primary { background: linear-gradient(135deg, rgba(124,200,255,.15), rgba(110,231,183,.15)); border-color: rgba(124,200,255,.35); }
-    .btn.ghost { background: transparent; }
-    .btn.small { padding: 8px 10px; font-size: 12px; }
+    nav.menu { display:flex; justify-content:center; gap:24px; margin-bottom: 20px; }
+    nav.menu a { color: var(--muted); text-decoration:none; font-weight:500; }
+    nav.menu a.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
 
-    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
-    .card { grid-column: span 12; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
-      padding: 18px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    }
-    .card h2 { margin: 2px 0 14px; font-size: 16px; letter-spacing:.2px; }
-    .row { display:flex; gap: 12px; align-items:center; flex-wrap: wrap; }
-    .col { flex:1 1 200px; }
-    .stack { display:flex; flex-direction:column; gap: 10px; }
-
-    .field { display:flex; flex-direction:column; gap:6px; }
-    .label { font-size: 12px; color: var(--muted); }
-    .input, select, textarea { width:100%; padding:12px 12px; border:1px solid var(--card-border); background: rgba(10,13,18,.6); color:var(--text); border-radius: 12px; outline:none; transition: border-color .2s; }
-    .input:focus, select:focus, textarea:focus { border-color: rgba(124,200,255,.5); }
-
-    .pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(124,200,255,.12); color: var(--accent); border:1px solid rgba(124,200,255,.3); }
-
-    .kpis { display:grid; grid-template-columns: repeat(5, minmax(100px,1fr)); gap: 12px; }
-    .kpi { background: rgba(255,255,255,.04); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px; }
-    .kpi .title { font-size: 12px; color: var(--muted); }
-    .kpi .value { font-size: 18px; margin-top:6px; }
-
-    .divider { height:1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent); margin: 12px 0; }
-
-    .footer { margin-top: 22px; display:flex; gap: 8px; align-items:center; color: var(--muted); font-size: 12px; }
-
-    @media (min-width: 900px) {
-      .card.span-6 { grid-column: span 6; }
-      .card.span-4 { grid-column: span 4; }
-      .card.span-8 { grid-column: span 8; }
-    }
-
-    .note { color: var(--muted); font-size: 12px; }
-    .status { margin-top: 8px; font-size: 12px; color: var(--muted); white-space: pre-wrap; max-height: 160px; overflow:auto; }
-    .ok { color: var(--success); }
-    .warn { color: var(--warning); }
-    .err { color: var(--danger); }
-    .badge { padding: 6px 10px; border-radius: 999px; border:1px solid var(--card-border); background: rgba(255,255,255,.04); font-size: 12px; color: var(--muted); }
+    .card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 20px; margin: 0 auto; max-width: 800px; }
+    .card h2 { margin-top:0; margin-bottom: 16px; }
+    .row { display:flex; gap: 16px; margin-bottom: 14px; }
+    .col { flex:1; display:flex; flex-direction:column; }
+    .label { font-size: 12px; margin-bottom:6px; color: var(--muted); }
+    .input, select { padding: 12px; border-radius: 12px; border:1px solid var(--card-border); background: rgba(10,13,18,.6); color: var(--text); }
+    .btn { padding: 10px 16px; border-radius: 10px; border:1px solid var(--card-border); background: var(--card); cursor:pointer; color:var(--text); }
+    .btn.primary { background: linear-gradient(135deg, rgba(124,200,255,.15), rgba(110,231,183,.15)); border-color: var(--accent); }
+    .section { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .section:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>iDex — Minimal AMM</h1>
-          <div class="sub">Swap • Liquidity • Fees • Admin</div>
-        </div>
-      </div>
-      <div class="row">
-        <span class="badge" id="chain">Disconnected</span>
-        <button class="btn primary" id="btnConnect">Connect Wallet</button>
-      </div>
+      <h1>iDex — Minimal AMM</h1>
+      <button class="btn primary" id="btnConnect">Connect Wallet</button>
     </header>
 
-    <section class="card">
-      <div class="kpis">
-        <div class="kpi"><div class="title">USDC Reserve</div><div class="value" id="kpiUsdc">–</div></div>
-        <div class="kpi"><div class="title">ETH Reserve</div><div class="value" id="kpiEth">–</div></div>
-        <div class="kpi">
-          <div class="title">Accrued Swap Fees</div>
-          <div class="value" id="kpiSwapFees">–</div>
-          <div class="note" id="kpiSwapFeesToken">USDC/ETH</div>
-        </div>
-        <div class="kpi"><div class="title">Price (USDC→ETH)</div><div class="value" id="kpiPrice">–</div></div>
-        <div class="kpi"><div class="title">Your UELP</div><div class="value" id="kpiUelp">–</div></div>
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="kpi"><div class="title">USDC Reserve</div><div class="value" id="kpiUsdc">–</div></div>
+      <div class="kpi"><div class="title">ETH Reserve</div><div class="value" id="kpiEth">–</div></div>
+      <div class="kpi"><div class="title">Accrued Swap Fees</div><div class="value" id="kpiSwapFees">–</div></div>
+      <div class="kpi"><div class="title">Price (USDC→ETH)</div><div class="value" id="kpiPrice">–</div></div>
+      <div class="kpi"><div class="title">Your UELP</div><div class="value" id="kpiUelp">–</div></div>
+    </div>
+
+    <!-- Menu -->
+    <nav class="menu">
+      <a href="#" class="active" data-target="swap">Swap</a>
+      <a href="#" data-target="liquidity">Liquidity Mgmt</a>
+      <a href="#" data-target="admin">Admin</a>
+    </nav>
+
+    <!-- Swap Panel -->
+    <section class="card panel" id="panel-swap">
+      <h2>Swap</h2>
+      <div class="row">
+        <div class="col"><label class="label">Token In</label><select id="swapTokenIn"><option>USDC</option><option>WETH</option></select></div>
+        <div class="col"><label class="label">Amount In</label><input class="input" id="swapAmountIn" placeholder="0.0" /></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="label">Token Out</label><select id="swapTokenOut"><option>WETH</option><option>USDC</option></select></div>
+        <div class="col"><label class="label">Slippage (%)</label><input class="input" id="swapSlippage" value="0.50" /></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="label">Estimated Out</label><input class="input" id="swapEstimatedOut" disabled /></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnQuote">Get Quote</button>
+        <button class="btn primary" id="btnSwap">Swap</button>
       </div>
     </section>
 
-    <div class="grid">
-      <!-- SWAP -->
-      <section class="card span-6">
-        <h2>Swap</h2>
-        <div class="stack">
-          <div class="row">
-            <div class="col field">
-              <label class="label">Token In</label>
-              <select id="swapTokenIn">
-                <option value="USDC">USDC</option>
-                <option value="WETH">ETH</option>
-              </select>
-            </div>
-            <div class="col field">
-              <label class="label">Amount In</label>
-              <input class="input" id="swapAmountIn" placeholder="0.0" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col field">
-              <label class="label">Token Out</label>
-              <select id="swapTokenOut">
-                <option value="WETH">ETH</option>
-                <option value="USDC">USDC</option>
-              </select>
-            </div>
-            <div class="col field">
-              <label class="label">Slippage (%)</label>
-              <input class="input" id="swapSlippage" placeholder="0.50" value="0.50" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col field">
-              <label class="label">Estimated Out</label>
-              <input class="input" id="swapEstimatedOut" placeholder="0.0" disabled />
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnQuote">Get Quote</button>
-            <button class="btn primary" id="btnSwap">Swap</button>
-            <span class="pill" id="swapInfo">–</span>
-          </div>
-          <div class="status" id="swapStatus"></div>
-        </div>
-      </section>
+    <!-- Liquidity Panel -->
+    <section class="card panel" id="panel-liquidity" style="display:none;">
+      <h2>Liquidity Management</h2>
 
-      <!-- LIQUIDITY: DEPOSIT -->
-      <section class="card span-6">
-        <h2>Provide Liquidity</h2>
-        <div class="stack">
-          <div class="row">
-            <div class="col field">
-              <label class="label">USDC Amount</label>
-              <input class="input" id="liqUsdc" placeholder="0.0" />
-            </div>
-            <div class="col field">
-              <label class="label">ETH Amount</label>
-              <input class="input" id="liqEth" placeholder="0.0" />
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnApproveUsdc">Approve USDC</button>
-            <button class="btn" id="btnApproveEth">Approve ETH</button>
-            <button class="btn primary" id="btnProvide">Seed</button>
-          </div>
-          <div class="note">First depositor locks minimum liquidity; subsequent deposits mint UELP proportionally.</div>
-          <div class="status" id="liqStatus"></div>
+      <div class="section">
+        <h3>Approvals</h3>
+        <div class="row">
+          <button class="btn" id="btnApproveUsdc">Approve USDC</button>
+          <button class="btn" id="btnApproveEth">Approve ETH</button>
         </div>
-      </section>
+      </div>
 
-      <!-- WITHDRAW -->
-      <section class="card span-6">
-        <h2>Withdraw Liquidity</h2>
-        <div class="stack">
-          <div class="row">
-            <div class="col field">
-              <label class="label">UELP to burn</label>
-              <input class="input" id="wdUelp" placeholder="0" />
-            </div>
-            <div class="" id="wdStatus"></div>
-          </div>
-          <div class="row">
-            <button class="btn primary" id="btnWithdraw">Withdraw</button>
-          </div>
-          <div class="status" id="wdStatus"></div>
+      <div class="section">
+        <h3>Deposit</h3>
+        <div class="row">
+          <div class="col"><label class="label">USDC Amount</label><input class="input" id="liqUsdc" /></div>
+          <div class="col"><label class="label">ETH Amount</label><input class="input" id="liqEth" /></div>
         </div>
-      </section>
+        <button class="btn primary" id="btnProvide">Deposit</button>
+      </div>
 
-      <!-- FEES -->
-      <section class="card span-6">
-        <h2>Provider Fees</h2>
-        <div class="stack">
-          <div class="row">
-            <div class="col field">
-              <label class="label">Accrued USDC</label>
-              <input class="input" id="feeUsdc" disabled placeholder="–" />
-            </div>
-            <div class="col field">
-              <label class="label">Accrued ETH</label>
-              <input class="input" id="feeEth" disabled placeholder="–" />
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnRefreshFees">Refresh</button>
-            <button class="btn primary" id="btnClaimFees">Claim Fees</button>
-          </div>
-          <div class="status" id="feeStatus"></div>
+      <div class="section">
+        <h3>Withdraw</h3>
+        <div class="row">
+          <div class="col"><label class="label">UELP to burn</label><input class="input" id="wdUelp" /></div>
+          <button class="btn primary" id="btnWithdraw">Withdraw</button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ADMIN -->
-      <section class="card span-8">
-        <h2>Admin Panel</h2>
-        <div class="stack">
-          <div class="row">
-            <div class="col field">
-              <label class="label">Swap Fee (%)</label>
-              <input class="input" id="admSwapFee" placeholder="0-100" />
-            </div>
-            <div class="col field">
-              <label class="label">Protocol Fee (%)</label>
-              <input class="input" id="admProtFee" placeholder="0-100" />
-            </div>
-            <div class="col field">
-              <label class="label">Min Liquidity (ppm)</label>
-              <input class="input" id="admMinPpm" placeholder="<= 1,000,000" />
-            </div>
-            <div class="col field">
-              <label class="label">Withdraw Cooldown (sec)</label>
-              <input class="input" id="admCooldown" placeholder="> 0" />
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnLoadParams">Load Params</button>
-            <button class="btn primary" id="btnSaveParams">Save Params</button>
-          </div>
-          <div class="divider"></div>
-          <div class="row">
-            <div class="col field">
-              <label class="label">ProtocolReward Address</label>
-              <input class="input" id="admPrAddr" placeholder="0x..." />
-            </div>
-            <div class="col field">
-              <label class="label">Rescue Token (address)</label>
-              <input class="input" id="admRescueAddr" placeholder="0x..." />
-            </div>
-            <div class="col field">
-              <label class="label">Rescue Amount</label>
-              <input class="input" id="admRescueAmt" placeholder="0.0" />
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn" id="btnSetPr">Set ProtocolReward</button>
-            <button class="btn" id="btnRescue">Rescue Tokens</button>
-          </div>
-          <div class="status" id="admStatus"></div>
+    <!-- Admin Panel -->
+    <section class="card panel" id="panel-admin" style="display:none;">
+      <h2>Admin Panel</h2>
+
+      <!-- <div class="section">
+        <h3>Parameters</h3>
+        <div class="row">
+          <div class="col"><label class="label">Swap Fee (%)</label><input class="input" id="admSwapFee" /></div>
+          <div class="col"><label class="label">Protocol Fee (%)</label><input class="input" id="admProtFee" /></div>
         </div>
-      </section>
-
-      <!-- STATS -->
-      <section class="card span-4">
-        <h2>Protocol Stats</h2>
-        <div class="stack">
-          <div class="row"><span class="label">swapFeePct</span><span class="pill" id="stSwap">–</span></div>
-          <div class="row"><span class="label">protocolFeePct</span><span class="pill" id="stProt">–</span></div>
-          <div class="row"><span class="label">minLiquidityPpm</span><span class="pill" id="stMin">–</span></div>
-          <div class="row"><span class="label">withdrawCooldown</span><span class="pill" id="stCd">–</span></div>
-          <div class="row"><span class="label">protocolReward</span><span class="pill" id="stPr">–</span></div>
+        <div class="row">
+          <div class="col"><label class="label">Min Liquidity (ppm)</label><input class="input" id="admMinPpm" /></div>
+          <div class="col"><label class="label">Withdraw Cooldown (sec)</label><input class="input" id="admCooldown" /></div>
         </div>
-      </section>
-    </div>
+        <div class="row">
+          <button class="btn" id="btnLoadParams">Load Params</button>
+          <button class="btn primary" id="btnSaveParams">Save Params</button>
+        </div>
+      </div> -->
 
-    <div class="footer">
-      <span>Tip:</span>
-      <span class="note">Update the <strong>CONFIG</strong> section (addresses, decimals, ABI & function names) to match your deployment.</span>
-    </div>
+      <div class="section">
+        <h3>ProtocolReward</h3>
+        <div class="row">
+          <div class="col"><label class="label">Accrued USDC</label><input class="input" id="feeUsdc" disabled /></div>
+          <div class="col"><label class="label">Accrued ETH</label><input class="input" id="feeEth" disabled /></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnRefreshFees">Refresh</button>
+          <button class="btn primary" id="btnClaimFees">Claim Fees</button>
+        </div>
+        <!-- <div class="row"><div class="col"><label class="label">Address</label><input class="input" id="admPrAddr" /></div></div>
+        <button class="btn primary" id="btnSetPr">Set ProtocolReward</button> -->
+      </div>
+
+      <!-- <div class="section">
+        <h3>Rescue Tokens</h3>
+        <div class="row">
+          <div class="col"><label class="label">Token</label><input class="input" id="admRescueAddr" /></div>
+          <div class="col"><label class="label">Amount</label><input class="input" id="admRescueAmt" /></div>
+        </div>
+        <button class="btn primary" id="btnRescue">Rescue Tokens</button>
+      </div> -->
+    </section>
   </div>
 
-  <script type="module" src="./index-anvil-ts.ts"></script>
+  <script src="./index-anvil-ts.ts" type="module"> </script>
+  <script>
+    document.querySelectorAll("nav.menu a").forEach(link=>{
+      link.addEventListener("click",e=>{
+        e.preventDefault();
+        document.querySelectorAll("nav.menu a").forEach(a=>a.classList.remove("active"));
+        link.classList.add("active");
+        const target = link.dataset.target;
+        document.querySelectorAll(".panel").forEach(p=>p.style.display="none");
+        document.getElementById("panel-"+target).style.display="block";
+      });
+    });
+  </script>
 </body>
 </html>

@@ -18,6 +18,7 @@ contract LiquidityProvision {
 
     mapping (address => uint256) private totalLP;
     mapping (address => uint256) private providerIndex;
+    mapping (address => bool) private providerEnabled;
     address [] private lpProviders;
     address private immutable iOwner;
     IDex private facade;
@@ -59,11 +60,12 @@ contract LiquidityProvision {
     ) 
     external
     onlyFacade {
-        if (providerIndex [_provider] == 0){
+        if (providerEnabled [_provider] == false){
             lpProviders.push (_provider);
         }
         totalLP [_provider] += _lp;
         providerIndex [_provider] = lpProviders.length-1;      
+        providerEnabled [_provider] = true;
 
     }
 
@@ -97,8 +99,8 @@ contract LiquidityProvision {
         facade = IDex (payable (_idexAddress));
     }
 
-    function doesProviderExist ( address _provider) public view returns (uint256) {
-        return providerIndex [_provider];
+    function doesProviderExist ( address _provider) public view returns (bool) {
+        return providerEnabled [_provider];
     }
 
     function getLPByProvider 

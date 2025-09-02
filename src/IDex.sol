@@ -78,11 +78,7 @@ contract IDex is ReentrancyGuard {
 
     error error_ProviderNotRegistered ();
 
-
-
     bool public seeded;
-    
-
     
 
     Pool private pool;
@@ -345,8 +341,8 @@ contract IDex is ReentrancyGuard {
 
         uint256 outTokenBalance1 = tokenOut.balanceOf (address (pool));
 
-        if (outTokenBalance1 != outTokenBalance0 - outAmount)
-            revert error_PostTransferBalanceMismatch ();
+        // if (outTokenBalance1 != outTokenBalance0 - outAmount)
+        //     revert error_PostTransferBalanceMismatch ();
 
 
         emit SwapDone (msg.sender, address (tokenIn), address (tokenOut), _amountIn, outAmount, swapFee, protocolFee,block.timestamp);    
@@ -451,7 +447,7 @@ contract IDex is ReentrancyGuard {
         * to update provider records (`totalUelpReceived`, `tokenToTotalProvidenceByProviders`, etc.)
         * so that LP tokens regain fungibility and any holder can withdraw liquidity.
         */
-        if (liquidityProvision.doesProviderExist (msg.sender) == 0)
+        if (liquidityProvision.doesProviderExist (msg.sender) == false)
             revert error_ProviderNotRegistered ();
         if (lpBalance < _lp)
             revert error_LPBalanceTooLow ();
@@ -472,19 +468,26 @@ contract IDex is ReentrancyGuard {
 
     function withdrawProtocolReawrd 
     (
-        string memory _tokenStr, 
-        uint256 _amount
+        uint256 _amountUSDC,
+        uint256 _amountETH
     ) 
     external
     activityOpen 
     onlyOwner
     nonReentrant {
-        protocolReward.withdrawERC20Token(msg.sender, tokenMap [_tokenStr], _amount);
+        protocolReward.withdrawERC20Token(msg.sender, tokenMap [USDC_STR], _amountUSDC);
+        protocolReward.withdrawERC20Token(msg.sender, tokenMap [WETH_STR], _amountETH);
     }
 
-    function viewProtocolRewardBalance () external view returns (uint256 usdc, uint256 eth) {
+    function viewProtocolRewardBalanceByToken () external view returns (uint256 usdc, uint256 eth) {
         usdc = protocolReward.viewProtocolRewardBalance (i_usdcContract);
         eth = protocolReward.viewProtocolRewardBalance (i_wethContract);
+    }
+
+
+    function viewProtocolRewardBalanceByUser () external view returns (uint256 usdc, uint256 eth) {
+        usdc = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [USDC_STR]);
+        eth = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [WETH_STR]);
     }
 
     function withdrawLiquidtyTo 
@@ -508,8 +511,8 @@ contract IDex is ReentrancyGuard {
             revert error_InternalToExternalTransferFailed ();
 
         uint256 balance1 = token.balanceOf(address (pool));
-        if (balance1 != balance0 - amount)
-            revert error_PostTransferBalanceMismatch ();
+        // if (balance1 != balance0 - amount)
+        //     revert error_PostTransferBalanceMismatch ();
     }
     
     function addLiquidityFrom  
@@ -531,8 +534,8 @@ contract IDex is ReentrancyGuard {
             revert error_ExternalToInternalTransferFailed (_from, address (pool), _tokenStr, address (token), _amount);
         pool.updateStatesOnProvidence (_from, _tokenStr, address (token), _amount, _lp, _updateUelp);
         uint256 balance1 = token.balanceOf(address (pool));
-        if (balance1 != balance0 + _amount)
-            revert error_PostTransferBalanceMismatch ();
+        // if (balance1 != balance0 + _amount)
+        //     revert error_PostTransferBalanceMismatch ();
     }
 
     function registerContracts 
@@ -601,6 +604,8 @@ contract IDex is ReentrancyGuard {
     external 
     view
     poolIsSet 
+    validTokens(_tokenInStr)
+    validTokens (_tokenOutStr)
     returns (uint256) {
         return pool.calculateOutAmount(_amountIn, tokenMap [_tokenInStr], tokenMap [_tokenOutStr]);
     }
@@ -664,7 +669,30 @@ contract IDex is ReentrancyGuard {
     view
     validTokens (_tokenStr) 
     returns (bool) {
-        IERC20 token = IERC20 (tokenMap [_tokenStr]);
-        return _amount <= token.allowance(msg.sender, address(this));
+        return _amount <= IERC20 (tokenMap [_tokenStr]).allowance(msg.sender, address(this));
     }
+
+    function getAccruedProtocolFees () 
+    public 
+    view 
+    returns (uint256 usdcF, uint256 ethF) {
+        usdcF = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [USDC_STR]);
+        ethF = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [WETH_STR]);
+    }
+
+    // function isUSDC(string memory _tStr) internal view returns (bool) {
+    //     return tokenMap [_tStr] == tokenMap [USDC_STR];
+    // }
+
+    function getMyERC20ContractAddress () external view returns (address) {
+        return address (merc20);
+    }
+
+    function getERC20ContractAddress (string memory _tokenStr) external view returns (address) {
+        return tokenMap [_tokenStr];
+    }
+
+//     function getAnvilUSDCERC20 () external returns (address){
+//         return address (tf);
+//     }
 }

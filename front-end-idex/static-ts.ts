@@ -1,9 +1,9 @@
 // fundme-contract.ts
 
-export const MY_CONTRACT_ADDRESS = "0x4b6ab5f819a515382b0deb6935d793817bb4af28";
-export const NETWORK = "sepolia"
-export const USDC_CONTRACT_ADDRESS = "0xd43F5E24C6b2edc1dFDE8548cDdaBeFFA6eCc822";
-export const WETH_CONTRACT_ADDRESS = "0x2e1E753d4a984F592D9De32C7e8009CE53298720";
+export const MY_CONTRACT_ADDRESS = "0xe1fd27f4390dcbe165f4d60dbf821e4b9bb02ded";
+export const NETWORK = "anvil"
+export const USDC_CONTRACT_ADDRESS = "0x640aB8092655a01F64e3F8e243b835b47447c2E0";
+export const WETH_CONTRACT_ADDRESS = "0xe59c4C44b9702B7040988DBA201b5efDf82cdf66";
 
 export const APPROVE_ABI = [,
     {
@@ -57,6 +57,16 @@ export const MY_CONTRACT_ABI = [
     { "type": "receive", "stateMutability": "payable" },
     {
       "type": "function",
+      "name": "getAccruedProtocolFees",
+      "inputs": [],
+      "outputs": [
+        { "name": "usdcF", "type": "uint256", "internalType": "uint256" },
+        { "name": "ethF", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "getAccruedSweepFees",
       "inputs": [],
       "outputs": [
@@ -92,6 +102,15 @@ export const MY_CONTRACT_ABI = [
     },
     {
       "type": "function",
+      "name": "getERC20ContractAddress",
+      "inputs": [
+        { "name": "_tokenStr", "type": "string", "internalType": "string" }
+      ],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "getExchangeRate",
       "inputs": [
         { "name": "_usdc", "type": "uint256", "internalType": "uint256" },
@@ -105,6 +124,13 @@ export const MY_CONTRACT_ABI = [
       "name": "getLPBalanceByProvider",
       "inputs": [],
       "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getMyERC20ContractAddress",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
       "stateMutability": "view"
     },
     {
@@ -146,21 +172,21 @@ export const MY_CONTRACT_ABI = [
       "stateMutability": "view"
     },
     {
-        "type": "function",
-        "name": "isApproved",
-        "inputs": [
-          { "name": "_tokenStr", "type": "string", "internalType": "string" },
-          { "name": "_amount", "type": "uint256", "internalType": "uint256" }
-        ],
-        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-        "stateMutability": "view"
-      },
-      {
-        "type": "function",
-        "name": "isSeeded",
-        "inputs": [],
-        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-        "stateMutability": "view"
+      "type": "function",
+      "name": "isApproved",
+      "inputs": [
+        { "name": "_tokenStr", "type": "string", "internalType": "string" },
+        { "name": "_amount", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "isSeeded",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+      "stateMutability": "view"
     },
     {
       "type": "function",
@@ -277,7 +303,17 @@ export const MY_CONTRACT_ABI = [
     },
     {
       "type": "function",
-      "name": "viewProtocolRewardBalance",
+      "name": "viewProtocolRewardBalanceByToken",
+      "inputs": [],
+      "outputs": [
+        { "name": "usdc", "type": "uint256", "internalType": "uint256" },
+        { "name": "eth", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "viewProtocolRewardBalanceByUser",
       "inputs": [],
       "outputs": [
         { "name": "usdc", "type": "uint256", "internalType": "uint256" },
@@ -298,8 +334,8 @@ export const MY_CONTRACT_ABI = [
       "type": "function",
       "name": "withdrawProtocolReawrd",
       "inputs": [
-        { "name": "_tokenStr", "type": "string", "internalType": "string" },
-        { "name": "_amount", "type": "uint256", "internalType": "uint256" }
+        { "name": "_amountUSDC", "type": "uint256", "internalType": "uint256" },
+        { "name": "_amountETH", "type": "uint256", "internalType": "uint256" }
       ],
       "outputs": [],
       "stateMutability": "nonpayable"
@@ -653,5 +689,5 @@ export const MY_CONTRACT_ABI = [
         }
       ]
     }
-];
+  ];
 

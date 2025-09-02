@@ -102,6 +102,17 @@ contract ProtocolReward {
         return IERC20 (token).balanceOf (address (this));
     }
 
+    function viewProtocolRewardBalanceByUser 
+    (
+        address _user,
+        address _token
+    ) 
+    external 
+    view
+    returns (uint256) {
+        return providerToFees [_user] [_token];
+    }
+
     receive () external payable {
         emit NativeETHReceived (msg.sender, msg.value);
     }
