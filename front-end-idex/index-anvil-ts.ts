@@ -91,6 +91,7 @@ const KEY_CONNECTED = "idex_connected";
 let poolSeeded = false as boolean;
 let pair: Map <string, string>;
 
+let quotedAmount : bigint;
 
 //ConenctWallet
 const chainBadge  = document.getElementById("chain") as HTMLSpanElement;
@@ -458,15 +459,43 @@ async function swapTokenOutChanged ():Promise <void> {
 
 async function updateQuote ():Promise <void> {
     const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
-    const quote = await getQuote (amount) as bigint;
-    swapEstimatedOut.value = (swapTokenIn.value === "USDC"? formatEther (quote) : formatUsdc (quote)) as string ;
+    quotedAmount = await getQuote (amount) as bigint;
+    swapEstimatedOut.value = (swapTokenIn.value === "USDC"? formatEther (quotedAmount) : formatUsdc (quotedAmount)) as string ;
 }
 async function getQuote (amount:bigint):Promise <bigint> {
     return await readContract ("quoteOutAmount",false, true, [amount, swapTokenIn.value, swapTokenOut.value ]) as bigint;
 }
 
 async function swap () : Promise <void>  {
+    const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
+    if (amount <= 0) {
+        swapStatus.innerHTML = swapTokenIn.value+" amount too low!";
+        return;
+    }
+    const slippageStr = swapSlippage.value;
+    const slippage = parseFloat (slippageStr); 
+    if (isNaN(slippage)){
+        swapStatus.innerHTML = "wrong slippage percentage";
+        return;
+    }
+    if (slippage > 10) {
+        swapStatus.innerHTML = "slippage percentage must be less than "+slippageStr+"%";
+        return;
+    }
+    const slippageBps = BigInt(Math.floor(slippage * 100)); 
 
+    updateQuote ();
+    const approveHash = swapTokenIn.value === "USDC" 
+                ? await approveToken(USDC_CONTRACT_ADDRESS, amount)
+                : await approveToken(WETH_CONTRACT_ADDRESS, amount);
+    await publicClient!.waitForTransactionReceipt({ hash: approveHash });
+    const hash = await writeContract ("swap", [amount, quotedAmount, slippageBps, swapTokenIn.value, swapTokenOut.value]);
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    const quotedAmountStr = (swapTokenIn.value === "USDC"? formatEther (quotedAmount) : formatUsdc (quotedAmount)) as string ;
+    if (receipt.status !== 'success')
+        swapStatus.innerText = "Swap Failed!";
+    let msg:string = swapAmountIn.value +" "+ swapTokenIn.value+" has been swapped for "+ quotedAmountStr +" "+ swapTokenOut.value+"\n"+hash;
+    swapStatus.innerText = msg;
 } 
 
 
