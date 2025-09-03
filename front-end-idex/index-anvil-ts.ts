@@ -115,11 +115,12 @@ const swapStatus = document.getElementById ("swapStatus") as HTMLDivElement;
 const btnQuote = document.getElementById("btnQuote") as HTMLButtonElement;
 const btnSwap = document.getElementById("btnSwap") as HTMLButtonElement;
 
+const status = document.getElementById ("status") as HTMLDivElement;
+
 
 //Provide Liquidity
 const liqUsdc = document.getElementById ("liqUsdc") as HTMLInputElement;
 const liqEth = document.getElementById ("liqEth") as HTMLInputElement;
-const liqStatus = document.getElementById ("liqStatus") as HTMLDivElement;
 const btnProvide =  document.getElementById ("btnProvide") as HTMLButtonElement; 
 const btnApproveUsdc =  document.getElementById ("btnApproveUsdc") as HTMLButtonElement;
 const btnApproveEth =  document.getElementById ("btnApproveEth") as HTMLButtonElement;
@@ -127,35 +128,22 @@ const btnApproveEth =  document.getElementById ("btnApproveEth") as HTMLButtonEl
 //Withdraw
 const wdUelp   = document.getElementById("wdUelp") as HTMLInputElement;
 const btnWithdraw = document.getElementById("btnWithdraw") as HTMLButtonElement;
-const wdStatus = document.getElementById("wdStatus") as HTMLDivElement;
+//const wdStatus = document.getElementById("wdStatus") as HTMLDivElement;
 
 // Provider Fees
 const feeUsdc = document.getElementById("feeUsdc") as HTMLInputElement;
 const feeEth = document.getElementById("feeEth") as HTMLInputElement;
 const btnRefreshFees = document.getElementById("btnRefreshFees") as HTMLButtonElement;
 const btnClaimFees = document.getElementById("btnClaimFees") as HTMLButtonElement;
-const feeStatus = document.getElementById("feeStatus") as HTMLDivElement;
+//const feeStatus = document.getElementById("feeStatus") as HTMLDivElement;
 
-// AdminPanel
-const admSwapFee   = document.getElementById("admSwapFee") as HTMLInputElement;
-const admProtFee   = document.getElementById("admProtFee") as HTMLInputElement;
-const admMinPpm    = document.getElementById("admMinPpm") as HTMLInputElement;
-const admCooldown  = document.getElementById("admCooldown") as HTMLInputElement;
-const btnLoadParams = document.getElementById("btnLoadParams") as HTMLButtonElement;
-const btnSaveParams = document.getElementById("btnSaveParams") as HTMLButtonElement;
-const admPrAddr     = document.getElementById("admPrAddr") as HTMLInputElement;
-const admRescueAddr = document.getElementById("admRescueAddr") as HTMLInputElement;
-const admRescueAmt  = document.getElementById("admRescueAmt") as HTMLInputElement;
-const btnSetPr  = document.getElementById("btnSetPr") as HTMLButtonElement;
-const btnRescue = document.getElementById("btnRescue") as HTMLButtonElement;
-const admStatus = document.getElementById("admStatus") as HTMLDivElement;
 
 // Stats
-const stSwap = document.getElementById("stSwap") as HTMLSpanElement;
-const stProt = document.getElementById("stProt") as HTMLSpanElement;
-const stMin  = document.getElementById("stMin") as HTMLSpanElement;
-const stCd   = document.getElementById("stCd") as HTMLSpanElement;
-const stPr   = document.getElementById("stPr") as HTMLSpanElement;
+// const stSwap = document.getElementById("stSwap") as HTMLSpanElement;
+// const stProt = document.getElementById("stProt") as HTMLSpanElement;
+// const stMin  = document.getElementById("stMin") as HTMLSpanElement;
+// const stCd   = document.getElementById("stCd") as HTMLSpanElement;
+// const stPr   = document.getElementById("stPr") as HTMLSpanElement;
 
 
 
@@ -180,28 +168,41 @@ async function readContract<T>(funName: string, requiresAccount: boolean, requir
     }).then((result) => result as T)
         .catch((error) => {
             const err = error as { shortMessage?: string, details?: string };
-            console.log (err);
-            return undefined as T;
+            if (err.shortMessage) {
+                showMessage(err.shortMessage, "err");
+            } else {
+                showMessage("Unexpected error", "err");
+            }          
+              return undefined as T;
     });
 }
 
-async function writeContract(funName: string, args: any[] = []): Promise<`0x${string}`> {
+async function writeContract(funName: string, args: any[] = []): Promise<`0x${string}` | undefined> {
     await setUpPublicClients();
     await setUpWalletClients();
-
-    const currentChain: Chain = await getCurrentChain(publicClient!);
-    const { request } = await publicClient!.simulateContract({
-        address: contractAddress,
-        abi: abi,
-        functionName: funName,
-        args: args,
-        chain: currentChain,
-        account: connectedAccount,
-    });//.catch(error => {
-    //     const reason = error?.walk?.()?.shortMessage || "Read failed";
-    //     console.log (reason);
-    // });
-    return await walletClient!.writeContract(request) as `0x${string}`;
+    try 
+    {
+        const currentChain: Chain = await getCurrentChain(publicClient!);
+        const { request } = await publicClient!.simulateContract({
+            address: contractAddress,
+            abi: abi,
+            functionName: funName,
+            args: args,
+            chain: currentChain,
+            account: connectedAccount,
+        });
+        return await walletClient!.writeContract(request) as `0x${string}`;     
+    }
+    catch (error:any) {
+        if (error?.cause?.metaMessages) {
+            const details = error.cause.metaMessages.join("\n");
+            showMessage(details, "err");
+        }  else if (error?.shortMessage) {
+            showMessage(error.shortMessage, "err");
+        } else {
+            showMessage("Unexpected error occurred", "err");
+        }
+    }
 }
 
 async function getCurrentChain(_client: PublicClient | WalletClient): Promise<Chain> {
@@ -290,8 +291,8 @@ async function initFetchFeed(): Promise<void> {
 
 async function refreshProviderFees () : Promise <void> {
     const [usdcFeesR, ethFeesR] = await readContract<[bigint, bigint]>(
-        "viewProtocolRewardBalanceByUser",
-        false,
+        "getAccruedProtocolFees",
+        true,
         false
       ) as [bigint, bigint];
     
@@ -337,10 +338,11 @@ function setProviderBtn () {
 }
 
 async function provideLiquidity (): Promise <void> {
+    hideLiqStatus ();
     const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
     const ethAmnt = parseEther (liqEth.value ) as bigint;
     if (usdcAmnt <= 0 || ethAmnt <=0){
-        liqStatus.innerText = "Both amount has to be non-zero";
+        showMessage ("Both amount has to be non-zero","wrn");
         return;
     }
 
@@ -354,7 +356,7 @@ async function provideLiquidity (): Promise <void> {
     if (usdcApproved && ethApproved) {
         const hash = await writeContract (providerFun, [usdcAmnt, ethAmnt]);
         let prefix:string = !poolSeeded ? "Seeding " : "Depositing" ;
-        liqStatus.innerText = prefix+ liqUsdc.value + " USDC and "+ liqEth.value + " ETH ...";
+        showMessage (prefix+ liqUsdc.value + " USDC and "+ liqEth.value + " ETH ...", "ok");
 
         const receipt = await publicClient!.waitForTransactionReceipt({ hash });
         let msg:string = !poolSeeded ? "Seeding Successful!" : "Depost Successful!";
@@ -362,10 +364,10 @@ async function provideLiquidity (): Promise <void> {
              msg = !poolSeeded ? "Seeding Failed!" : "Depost Failed!";
         else 
             poolSeeded = true;
-        liqStatus.innerText = msg;
+        showMessage (msg, receipt.status !== 'success'? "err" : "ok");
     }
     else {
-        liqStatus.innerText = "Please approve both USDC and ETH";
+        showMessage("Please approve both USDC and ETH", "wrn");
     }
     initFetchFeed ();
     setProviderBtn ();
@@ -374,40 +376,41 @@ async function provideLiquidity (): Promise <void> {
 
 
 async function approveETH ():Promise <void> {
+    hideLiqStatus ();
     const ethAmnt = parseEther(liqEth.value ) as bigint;
     if (ethAmnt <=0){
-        liqStatus.innerText = "ETH amount has to be non-zero for approval";
+        showMessage ("ETH amount has to be non-zero for approval", "wrn");
         return;
     }
     
     await setUpWalletClients ();
 
     const hash = await approveToken (WETH_CONTRACT_ADDRESS, ethAmnt) as `0x${string}`;
-    liqStatus.innerText = "Approving "+liqEth.value+" ETH ... ";
+    showMessage ("Approving "+liqEth.value+" ETH ... ", "ok");
     const receipt = await publicClient!.waitForTransactionReceipt({ hash });
     let msg:string =  liqEth.value+" ETH has been approved!";
     if (receipt.status !== 'success')
         msg = "ETH approval failed!";
-    liqStatus.innerText = msg;
+    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
 }
 
 async function approveUSDC ():Promise <void> {
     const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
 
     if (usdcAmnt <=0){
-        liqStatus.innerText = "USDC amount has to be non-zero for approval";
+        showMessage ("USDC amount has to be non-zero for approval", "wrn");
         return;
     }
     await setUpWalletClients ();
 
     const hash = await approveToken (USDC_CONTRACT_ADDRESS, usdcAmnt) as `0x${string}`;
-    liqStatus.innerText = "Approving "+liqUsdc.value+" USDC ... ";
+    showMessage ("Approving "+liqUsdc.value+" USDC ... ", "ok");
 
     const receipt = await publicClient!.waitForTransactionReceipt({ hash });
     let msg:string =  liqUsdc.value+" USDC has been approved!";
     if (receipt.status !== 'success')
         msg = "USDC approval failed!";
-    liqStatus.innerText = msg;
+    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
 }
 
 async function approveToken(tokenAddress:`0x${string}`, amount: bigint): Promise<`0x${string}`> {
@@ -450,10 +453,9 @@ function formatUsdc(amount: bigint): string {
 
 
 async function main () : Promise <void> {
+    if (!ensureEthereumOrWarn()) return; 
+    ensureEthereumOrWarn ();
     poolSeeded = await readContract ("isSeeded",false, false) as boolean;
-    // USDC_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["USDC"]);
-    // WETH_CONTRACT_ADDRESS = await readContract ("getERC20ContractAddress",false, true, ["WETH"]);
-
     restoreConnection();
     initFetchFeed ();
     setProviderBtn ();
@@ -481,17 +483,17 @@ async function getQuote (amount:bigint):Promise <bigint> {
 async function swap () : Promise <void>  {
     const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
     if (amount <= 0) {
-        swapStatus.innerHTML = swapTokenIn.value+" amount too low!";
+        showMessage (swapTokenIn.value+" amount too low!", "wrn");
         return;
     }
     const slippageStr = swapSlippage.value;
     const slippage = parseFloat (slippageStr); 
     if (isNaN(slippage)){
-        swapStatus.innerHTML = "wrong slippage percentage";
+        showMessage ("wrong slippage percentage", "wrn");
         return;
     }
     if (slippage > 10) {
-        swapStatus.innerHTML = "slippage must be less than 10%";
+        showMessage ("slippage must be less than 10%","wrn");
         return;
     }
     const slippageBps = BigInt(Math.floor(slippage * 100)); 
@@ -505,34 +507,40 @@ async function swap () : Promise <void>  {
     const receipt = await publicClient!.waitForTransactionReceipt({ hash });
     const quotedAmountStr = (swapTokenIn.value === "USDC"? formatEther (quotedAmount) : formatUsdc (quotedAmount)) as string ;
     if (receipt.status !== 'success')
-        swapStatus.innerText = "Swap Failed!";
+        showMessage ("Swap Failed!","err");
     let msg:string = swapAmountIn.value +" "+ swapTokenIn.value+" has been swapped for "+ quotedAmountStr +" "+ swapTokenOut.value+"\n"+hash;
-    swapStatus.innerText = msg;
+    showMessage (msg, "ok");
+    initFetchFeed ();
 } 
 
 async function claimFees (): Promise <void> {
     const u = parseUsdc(feeUsdc.value) as bigint;
     const e = parseEther(feeEth.value) as bigint;
-    if (u <=0 && e <= 0)
-        feeStatus.innerText = "Fees to withdraw is too low!"
+    if (u <=0 && e <= 0){
+        showMessage ("Fees to withdraw is too low!", "wrn");
+        return;
+    }
     const hash = await writeContract ("withdrawProtocolReawrd", [u, e]);
     const receipt = await publicClient!.waitForTransactionReceipt({ hash });
     if (receipt.status !== 'success'){
-        swapStatus.innerText = "Withdrawal failed!";
+        showMessage ("Withdrawal failed!", "err");
         return;
     }
     let suffix:string = u>0 ? feeUsdc.value + " USDC":"";
     suffix += e>0 ? " and "+feeEth.value + " ETH": ""; 
     const msg = "Withdrawn "+suffix+" to your wallet!" as string;
-    swapStatus.innerText = msg;
+    showMessage (msg, "ok");
+    refreshProviderFees ();
 }
 
 async function withdrawLiquidity (): Promise <void> {
+    hideLiqStatus ();
     const uelp = parseUsdc(wdUelp.value) as bigint;
-    if (uelp <=0)
-        wdStatus.innerText = "Withdrawal amount is too low!"
+    if (uelp <=0){
+        showMessage ("Withdrawal amount is too low!", "wrn");
+        return;
+    }
     const lpTokenAddress = await readContract ("getMyERC20ContractAddress",false, false, []) as `0x${string}`;
-    console.log ("=====>", lpTokenAddress);
     const approveHash = await approveToken(lpTokenAddress, uelp);
 
     await publicClient!.waitForTransactionReceipt({ hash: approveHash });
@@ -540,14 +548,24 @@ async function withdrawLiquidity (): Promise <void> {
     const hash = await writeContract ("withdrawLiquidity", [uelp]);
     const receipt = await publicClient!.waitForTransactionReceipt({ hash });
     if (receipt.status !== 'success') {
-        wdStatus.innerText = "Withdrawal failed!";
+        showMessage ("Withdrawal failed!", "err");
         return;
     }
-    wdStatus.innerText = "Withdrawal successful!";
+    showMessage("Withdrawal successful!", "ok");
 }
 
 async function refreshFees () : Promise <void> {
     refreshProviderFees ();
+}
+
+function showMessage(message: string, type: "ok" | "err" | "wrn") {
+    status.textContent = message;
+    status.classList.remove("hidden");
+    status.classList.add(type);
+}
+
+function hideLiqStatus() {
+    status.classList.add("hidden");
 }
 
 
@@ -562,8 +580,47 @@ btnSwap.onclick = swap
 btnClaimFees.onclick = claimFees
 btnWithdraw.onclick = withdrawLiquidity 
 btnRefreshFees.onclick = refreshFees
-// fundBtn.onclick = fund
-// withdrawFundsBtn.onclick = withdraw
-// main()
+
 
 main ();
+
+
+/** -------- MetaMask install warning (platform-aware) -------- */
+function detectPlatform(): "android" | "ios" | "desktop" {
+    const ua = navigator.userAgent || navigator.vendor || "";
+    const isAndroid = /Android/i.test(ua);
+    const isIOS =
+      /iPad|iPhone|iPod/i.test(ua) ||
+      ((/Macintosh/i.test(ua) || /Mac OS X/i.test(ua)) && "ontouchend" in document);
+  
+    if (isAndroid) return "android";
+    if (isIOS) return "ios";
+    return "desktop";
+  }
+  
+
+  
+  
+  function ensureEthereumOrWarn(): boolean {
+    const hasEth = typeof (window as any).ethereum !== "undefined";
+    if (hasEth)
+      return true;
+    
+  
+    const platform = detectPlatform();
+    const METAMASK_LINK: Record<"android" | "ios" | "desktop", string> = {
+        android: "https://play.google.com/store/apps/details?id=io.metamask",
+        ios: "https://apps.apple.com/app/metamask-blockchain-wallet/id1438144202",
+        desktop: "https://metamask.io/download/",
+      };
+    const targetUrl = METAMASK_LINK[platform];
+    const label = platform === "desktop" ? "Desktop" : platform.toUpperCase();
+    status.classList.remove ("hidden");
+    status.innerHTML =
+      `<div style="color:red">No Ethereum provider detected. ` +
+      `Please <a href="${targetUrl}" target="_blank" rel="noopener">install MetaMask for ${label}</a> ` +
+      `and then reload this page.</div>`;
+  
+    return false;
+  }
+  

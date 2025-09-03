@@ -49,6 +49,14 @@ contract ProtocolReward {
         facade = IDex (payable (_idexAddress));
     }
 
+    function updateProtocolRewardStateOnWithdrawal (address _from, address _token, uint256 _amount) external onlyFacade {
+        token2Fees [_token].totalAmount -= _amount;
+
+        provider2FeesDetail [_from].totalAmount -= _amount;
+
+        providerToFees [_from] [_token] -= _amount;
+    }
+
     function updateProtocolRewardStateOnSwap 
     (
         address _from,

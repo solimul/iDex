@@ -477,6 +477,8 @@ contract IDex is ReentrancyGuard {
     nonReentrant {
         protocolReward.withdrawERC20Token(msg.sender, tokenMap [USDC_STR], _amountUSDC);
         protocolReward.withdrawERC20Token(msg.sender, tokenMap [WETH_STR], _amountETH);
+        protocolReward.updateProtocolRewardStateOnWithdrawal (msg.sender,  tokenMap [USDC_STR], _amountUSDC);
+        protocolReward.updateProtocolRewardStateOnWithdrawal (msg.sender,  tokenMap [WETH_STR], _amountETH);
     }
 
     function viewProtocolRewardBalanceByToken () external view returns (uint256 usdc, uint256 eth) {
@@ -485,10 +487,10 @@ contract IDex is ReentrancyGuard {
     }
 
 
-    function viewProtocolRewardBalanceByUser () external view returns (uint256 usdc, uint256 eth) {
-        usdc = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [USDC_STR]);
-        eth = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [WETH_STR]);
-    }
+    // function viewProtocolRewardBalanceByUser () external view returns (uint256 usdc, uint256 eth) {
+    //     usdc = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [USDC_STR]);
+    //     eth = protocolReward.viewProtocolRewardBalanceByUser (msg.sender, tokenMap [WETH_STR]);
+    // }
 
     function withdrawLiquidtyTo 
     (
