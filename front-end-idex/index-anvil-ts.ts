@@ -172,8 +172,8 @@ async function readContract<T>(funName: string, requiresAccount: boolean, requir
                 showMessage(err.shortMessage, "err");
             } else {
                 showMessage("Unexpected error", "err");
-            }          
-              return undefined as T;
+            }
+            return undefined as T;
     });
 }
 
@@ -194,14 +194,18 @@ async function writeContract(funName: string, args: any[] = []): Promise<`0x${st
         return await walletClient!.writeContract(request) as `0x${string}`;     
     }
     catch (error:any) {
+    
+        showMessage(error.cause.metaMessages [0], "err");
+
         if (error?.cause?.metaMessages) {
             const details = error.cause.metaMessages.join("\n");
-            showMessage(details, "err");
+            showMessage(error.cause.metaMessages [0] + error.cause.metaMessages [1], "err");
         }  else if (error?.shortMessage) {
             showMessage(error.shortMessage, "err");
         } else {
             showMessage("Unexpected error occurred", "err");
         }
+        throw error;
     }
 }
 
@@ -222,8 +226,6 @@ async function setUpPublicClients(): Promise<void> {
         });
     }
 }
-
-
 
 async function connect(): Promise<void> {
     walletClient = await createWalletClient({ transport: custom(window.ethereum!) });
@@ -275,14 +277,18 @@ async function initFetchFeed(): Promise<void> {
             kpiPrice.innerText = setPrecision (exchangeRate.toString());
   
     if (localStorage.getItem(KEY_CONNECTED) === "1" && walletClient != null) {
-      const addrs = await walletClient.getAddresses();
-      if (addrs.length > 0) {
-        const yourUelp = await readContract<bigint>(
-          "getLPBalanceByProvider",
-          true,
-          false
-        ) as bigint;
-        kpiUelp.innerText = setPrecision (formatEther(yourUelp));
+     if (!poolSeeded)
+        showMessage ("the pool is not seeded yet!", "wrn");
+     else {
+        const addrs = await walletClient.getAddresses();
+        if (addrs.length > 0) {
+            const yourUelp = await readContract<bigint>(
+            "getLPBalanceByProvider",
+            true,
+            false
+            ) as bigint;
+            kpiUelp.innerText = setPrecision (formatEther(yourUelp));
+        }
       }
     }
 
@@ -355,10 +361,14 @@ async function provideLiquidity (): Promise <void> {
     const ethApproved = await readContract ("isApproved",true,true, ["WETH", ethAmnt ]) as boolean;
     if (usdcApproved && ethApproved) {
         const hash = await writeContract (providerFun, [usdcAmnt, ethAmnt]);
-        let prefix:string = !poolSeeded ? "Seeding " : "Depositing" ;
+        
+        let prefix:string = !poolSeeded ? "Seeding " : "Depositing " ;
         showMessage (prefix+ liqUsdc.value + " USDC and "+ liqEth.value + " ETH ...", "ok");
 
+        
         const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+        
+
         let msg:string = !poolSeeded ? "Seeding Successful!" : "Depost Successful!";
         if (receipt.status !== 'success')
              msg = !poolSeeded ? "Seeding Failed!" : "Depost Failed!";
@@ -454,6 +464,8 @@ function formatUsdc(amount: bigint): string {
 
 async function main () : Promise <void> {
     if (!ensureEthereumOrWarn()) return; 
+    const lpTokenAddress = await readContract ("getMyERC20ContractAddress",false, false, []) as `0x${string}`;
+    console.log ("===>", lpTokenAddress);
     ensureEthereumOrWarn ();
     poolSeeded = await readContract ("isSeeded",false, false) as boolean;
     restoreConnection();
@@ -568,6 +580,52 @@ function hideLiqStatus() {
     status.classList.add("hidden");
 }
 
+function calculateOtherAmount (amount:bigint, token:number): bigint | undefined {
+    if (token<0 || token >1 ) {
+        showMessage ("invalid token", "wrn");
+        return;
+    }
+    let rate:number = parseFloat (kpiPrice.innerText);
+    if (isNaN (rate)){
+        showMessage ("Exchange Rate is not available", "wrn");
+        return;
+    }
+    rate = rate + 10;
+    if (token === 0) {
+        const eth = Number(amount) / 1e18;
+        const usdc = eth * rate;
+        return BigInt(Math.floor(usdc * 1e6)); 
+    } else {
+        const usdc = Number(amount) / 1e6;
+        const eth = usdc / rate;
+        return BigInt(Math.floor(eth * 1e18)); 
+    }
+}
+
+function updateLiqUSDC  () {
+    if (!poolSeeded) return;
+    const ethAmount = parseEther (liqEth.value) as bigint;
+    if (ethAmount <=0){
+        return;
+    }
+    const usdcAmount = calculateOtherAmount (ethAmount, 0);
+    if (!usdcAmount)
+        return;
+    liqUsdc.value = formatUsdc (usdcAmount);
+}
+
+function updateLiqETH () {
+    if (!poolSeeded) return;
+    const usdcAmount = parseUsdc (liqUsdc.value) as bigint;
+    if (usdcAmount <=0){
+        return;
+    }
+    const ethAmount = calculateOtherAmount (usdcAmount, 1);
+    if (!ethAmount)
+        return;
+    liqEth.value = formatEther (ethAmount);
+}
+
 
 btnConnect.onclick = connect
 btnApproveEth.onclick = approveETH 
@@ -580,6 +638,8 @@ btnSwap.onclick = swap
 btnClaimFees.onclick = claimFees
 btnWithdraw.onclick = withdrawLiquidity 
 btnRefreshFees.onclick = refreshFees
+liqUsdc.onblur = updateLiqETH 
+liqEth.onblur = updateLiqUSDC
 
 
 main ();
