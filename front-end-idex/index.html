@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>iDex • Minimal AMM</title>
+  <title>iDex • a Lightweight DEX</title>
   <style>
     :root {
       --bg: #0b0f14;
@@ -48,15 +48,37 @@
     .ok {color: green;}
     .err {color:red;}
     .wrn {color: orange;}
-    
-  </style>
+    .span {margin-right: 10px; margin-top:10px;}
+    .chain {font-weight: bold;}
+    .title {color:green; margin-top:20px;}
+    .footer {
+      margin-top: 40px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      margin-left: 4px;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }  
+</style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>iDex — Minimal AMM</h1>
-      <div>
-        <span class="span" id="chain"></span>
+      <h1 class="title">iDex: a lightweight decentralized exchange</h1>
+      <div style="margin-top:25px;">
+        <span class="span chain" id="chain"></span>
         <button class="btn primary" id="btnConnect">Connect Wallet</button>
       </div>
     </header>
@@ -75,6 +97,8 @@
       <a href="#" class="active" data-target="swap">Swap</a>
       <a href="#" data-target="liquidity">Liquidity Mgmt</a>
       <a href="#" data-target="admin">Admin</a>
+      <a href="#" data-target="about">About iDex</a>
+
     </nav>
 
     <div class="section">
@@ -171,9 +195,57 @@
         <button class="btn primary" id="btnRescue">Rescue Tokens</button>
       </div> -->
     </section>
+    <section class="card panel" id="panel-about" style="display:none;">
+      <h2>About iDex</h2>
+      <p>
+        <strong>iDex</strong> is a lightweight decentralized exchange (DEX) designed to demonstrate the 
+        fundamental mechanics of Automated Market Makers (AMMs). It provides an intuitive interface 
+        for swapping tokens, managing liquidity, and observing protocol-level operations.
+      </p>
+      <ul>
+        <li><strong>Swap:</strong> Trade between ERC20 tokens (ETH / USDC) instantly with built-in slippage control.</li>
+        <br />
+        <li>
+          <strong>Liquidity Management:</strong> 
+          Deposit liquidity (ETH and USDC) to become a partial owner of the pool. In return, 
+          <em>iDex</em> issues you <em>UELP</em> (User Exchange Liquidity Pool) tokens - 
+          a native, non-fungible ERC-20 token of iDex. These tokens represent your 
+          share of the pool and entitle you to a proportional share of swap fees and 
+          protocol rewards. By holding UELP, you effectively own part of the pool and 
+          can track, withdraw, or claim rewards based on your contribution. 
+          <br />
+        <br />
+          Liquidity providers are able to withdraw their supplied tokens 
+          after a minimum lock-up period of <strong>30 days</strong>, ensuring pool stability 
+          and fairness for all participants.
+          <br />
+          <br />
+          <em>Note: UELP tokens cannot be transferred or sold. They are strictly a representation of your liquidity position within iDex.</em>
+        </li>
+        <br />
+
+        <li>
+          <strong>Protocol Rewards:</strong> 
+          Developers can earn and claim protocol fees that accrue from every swap. 
+          A fixed <strong>5% of all swap fees</strong> are directed to the protocol’s 
+          reward contract. These accumulated rewards can be periodically claimed, 
+          providing developers with a sustainable incentive mechanism to maintain 
+          and improve the protocol.  
+          <br><br>
+          <em>Note: Protocol Rewards are separate from liquidity provider (UELP) 
+          earnings, ensuring both developers and liquidity providers are fairly compensated.</em>
+        </li>
+        
+
+      </ul>
+      <p>
+        This project is a practical implementation of core DeFi principles, showcasing how 
+        constant-product AMMs work and how liquidity providers are rewarded in a decentralized environment.
+      </p>
+    </section>
   </div>
 
-  <script src="./index-anvil-ts.ts" type="module"> </script>
+  <script src="./index-ts.ts" type="module"> </script>
   <script>
     document.querySelectorAll("nav.menu a").forEach(link=>{
       link.addEventListener("click",e=>{
@@ -187,5 +259,9 @@
       });
     });
   </script>
+  <footer class="footer">
+    © 2025 Md Solimul Chowdhury. All rights reserved. | 
+    <a href="mailto:solimul.chowdhury@gmail.com">solimul.chowdhury@gmail.com</a>
+  </footer>
 </body>
 </html>

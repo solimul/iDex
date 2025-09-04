@@ -3,11 +3,11 @@ Contract: BabylonianLib
 Transaction: {
   "from": "0x637398a8e8ef884dc58c64e408f09878ddaf891d",
   "to": null,
-  "maxFeePerGas": "0x11e3a64",
+  "maxFeePerGas": "0x77a162",
   "maxPriorityFeePerGas": "0xf4240",
   "gas": "0x109c5",
   "input": "0x608060405234601d57600e6021565b603e602c823930815050603e90f35b6027565b60405190565b5f80fdfe60806040525f80fdfea26469706673582212201923959c63f3a551c827f847cfe64bc65db7c071e19972aac730eaffa93cf9c464736f6c634300081e0033",
-  "nonce": "0x3de",
+  "nonce": "0x413",
   "chainId": "0xaa36a7"
 }
 ABI: []

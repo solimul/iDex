@@ -84,7 +84,11 @@ const network:string = NETWORK;
 const ANVIL_RPC = "http://127.0.0.1:8545";
 const ANVIL_CHAIN_ID_HEX = "0x7A69"; // 31337
 
-
+const metamask_links: Record<"android" | "ios" | "desktop", string> = {
+    android: "https://play.google.com/store/apps/details?id=io.metamask",
+    ios: "https://apps.apple.com/app/metamask-blockchain-wallet/id1438144202",
+    desktop: "https://metamask.io/download/",
+  };
 
 const KEY_CONNECTED = "idex_connected";
 
@@ -152,7 +156,7 @@ let walletClient: WalletClient | null = null;
 let publicClient: PublicClient | null = null;
 let connectedAccount: `0x${string}` | null = null;
 
-// /** generic function */
+// /** core functions */
 async function readContract<T>(funName: string, requiresAccount: boolean, requiresArg: boolean, _args: any[] = []): Promise<T> {
     await setUpPublicClients();
     if (requiresAccount)
@@ -227,89 +231,6 @@ async function setUpPublicClients(): Promise<void> {
     }
 }
 
-async function connect(): Promise<void> {
-    walletClient = await createWalletClient({ transport: custom(window.ethereum!) });
-    const [account] = await walletClient.requestAddresses();
-    connectedAccount = account;
-    btnConnect.innerText = account.slice(0, 6) + "..." + account.slice(-4);
-    chainBadge.innerText =  supportedChainInfo[network].name;
-    localStorage.setItem(KEY_CONNECTED, "1");
-    initFetchFeed ();
-}
-
-async function restoreConnection ():Promise <void> {
-    if (localStorage.getItem(KEY_CONNECTED) !== "1") return;
-    walletClient = await createWalletClient({ transport: custom(window.ethereum!) });
-
-    const addrs = await walletClient.getAddresses(); 
-    if (addrs.length === 0) {
-        localStorage.removeItem(KEY_CONNECTED);
-        return;
-    }
-    connectedAccount = addrs[0];
-    btnConnect.innerText = connectedAccount.slice(0, 6) + "..." + connectedAccount.slice(-4);
-    chainBadge.innerText = supportedChainInfo[network].name;
-}
-
-async function initFetchFeed(): Promise<void> {
-    const [usdcReserve, ethReserve] = await readContract<[bigint, bigint]>(
-      "getReserves",
-      false,
-      false
-    ) as [bigint, bigint];
-  
-    const [usdcFees, ethFees] = await readContract<[bigint, bigint]>(
-      "getAccruedSweepFees",
-      false,
-      false
-    ) as [bigint, bigint];
-  
-    const exchangeRate = await readContract<bigint>(
-      "getPoolExchangeRate",
-      false,
-      false
-    ) as bigint | undefined;;
-  
-    kpiUsdc.innerText = setPrecision (formatUsdc (usdcReserve));
-    kpiEth.innerText = setPrecision (formatEther(ethReserve));
-    kpiSwapFees.innerText = `${setPrecision (formatUsdc(usdcFees))} / ${setPrecision (formatEther(ethFees))}`;
-    if (exchangeRate !== undefined)
-            kpiPrice.innerText = setPrecision (exchangeRate.toString());
-  
-    if (localStorage.getItem(KEY_CONNECTED) === "1" && walletClient != null) {
-     if (!poolSeeded)
-        showMessage ("the pool is not seeded yet!", "wrn");
-     else {
-        const addrs = await walletClient.getAddresses();
-        if (addrs.length > 0) {
-            const yourUelp = await readContract<bigint>(
-            "getLPBalanceByProvider",
-            true,
-            false
-            ) as bigint;
-            kpiUelp.innerText = setPrecision (formatEther(yourUelp));
-        }
-      }
-    }
-
-    refreshProviderFees ();
-}
-
-async function refreshProviderFees () : Promise <void> {
-    const [usdcFeesR, ethFeesR] = await readContract<[bigint, bigint]>(
-        "getAccruedProtocolFees",
-        true,
-        false
-      ) as [bigint, bigint];
-    
-    feeUsdc.value = formatUsdc (usdcFeesR);
-    feeEth.value = formatEther (ethFeesR);
-}
-
-function setPrecision (numStr:string) {
-    return parseFloat (numStr).toFixed (2).toString ();
-}
-
 async function setUpWalletClients(): Promise<void> {
     if (!walletClient) {
         walletClient = createWalletClient({
@@ -338,11 +259,12 @@ async function setUpWalletClients(): Promise<void> {
     }
 }
 
-
-function setProviderBtn () {
-    btnProvide.innerText = (!poolSeeded? "Seed": "Depost") as string; 
+/* getters */
+async function getQuote (amount:bigint):Promise <bigint> {
+    return await readContract ("quoteOutAmount",false, true, [amount, swapTokenIn.value, swapTokenOut.value ]) as bigint;
 }
 
+/* app functionalities */
 async function provideLiquidity (): Promise <void> {
     hideLiqStatus ();
     const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
@@ -381,115 +303,6 @@ async function provideLiquidity (): Promise <void> {
     }
     initFetchFeed ();
     setProviderBtn ();
-}
-
-
-
-async function approveETH ():Promise <void> {
-    hideLiqStatus ();
-    const ethAmnt = parseEther(liqEth.value ) as bigint;
-    if (ethAmnt <=0){
-        showMessage ("ETH amount has to be non-zero for approval", "wrn");
-        return;
-    }
-    
-    await setUpWalletClients ();
-
-    const hash = await approveToken (WETH_CONTRACT_ADDRESS, ethAmnt) as `0x${string}`;
-    showMessage ("Approving "+liqEth.value+" ETH ... ", "ok");
-    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
-    let msg:string =  liqEth.value+" ETH has been approved!";
-    if (receipt.status !== 'success')
-        msg = "ETH approval failed!";
-    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
-}
-
-async function approveUSDC ():Promise <void> {
-    const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
-
-    if (usdcAmnt <=0){
-        showMessage ("USDC amount has to be non-zero for approval", "wrn");
-        return;
-    }
-    await setUpWalletClients ();
-
-    const hash = await approveToken (USDC_CONTRACT_ADDRESS, usdcAmnt) as `0x${string}`;
-    showMessage ("Approving "+liqUsdc.value+" USDC ... ", "ok");
-
-    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
-    let msg:string =  liqUsdc.value+" USDC has been approved!";
-    if (receipt.status !== 'success')
-        msg = "USDC approval failed!";
-    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
-}
-
-async function approveToken(tokenAddress:`0x${string}`, amount: bigint): Promise<`0x${string}`> {
-    await setUpPublicClients();
-    await setUpWalletClients();
-    const currentChain: Chain = await getCurrentChain(publicClient!);
-    const { request } = await publicClient!.simulateContract({
-            address: tokenAddress,  
-            abi: APPROVE_ABI,          
-            functionName: "approve",
-            args: [contractAddress, amount],
-            chain: currentChain,
-            account: connectedAccount
-    });
-    return await walletClient!.writeContract(request) as `0x${string}`;
-}
-
-
-function parseUsdc(input: string): bigint {
-    const [intPart, fracPart = ""] = input.split(".");
-    const frac = (fracPart + "000000").slice(0, 6);
-    return BigInt(intPart) * 10n ** 6n + BigInt(frac);
-}
-  
-
-function formatUsdc(amount: bigint): string {
-    const divisor = 10n ** 6n;
-    const whole = amount / divisor;
-    const fraction = amount % divisor;
-  
-    const fractionStr = fraction.toString().padStart(6, "0");
-  
-    const trimmedFraction = fractionStr.replace(/0+$/, "");
-  
-    return trimmedFraction.length > 0
-      ? `${whole.toString()}.${trimmedFraction}`
-      : whole.toString();
-  }
-  
-
-
-async function main () : Promise <void> {
-    if (!ensureEthereumOrWarn()) return; 
-    const lpTokenAddress = await readContract ("getMyERC20ContractAddress",false, false, []) as `0x${string}`;
-    console.log ("===>", lpTokenAddress);
-    ensureEthereumOrWarn ();
-    poolSeeded = await readContract ("isSeeded",false, false) as boolean;
-    restoreConnection();
-    initFetchFeed ();
-    setProviderBtn ();
-}
-
-async function swapTokenInChanged ():Promise <void> {
-    swapTokenOut.value = swapTokenIn.value === "USDC" ? "WETH" : "USDC";
-    updateQuote ();
-}
-
-async function swapTokenOutChanged ():Promise <void> {
-    swapTokenIn.value = swapTokenOut.value === "USDC" ? "WETH" : "USDC";
-    updateQuote ();
-}
-
-async function updateQuote ():Promise <void> {
-    const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
-    quotedAmount = await getQuote (amount) as bigint;
-    swapEstimatedOut.value = (swapTokenIn.value === "USDC"? formatEther (quotedAmount) : formatUsdc (quotedAmount)) as string ;
-}
-async function getQuote (amount:bigint):Promise <bigint> {
-    return await readContract ("quoteOutAmount",false, true, [amount, swapTokenIn.value, swapTokenOut.value ]) as bigint;
 }
 
 async function swap () : Promise <void>  {
@@ -566,6 +379,84 @@ async function withdrawLiquidity (): Promise <void> {
     showMessage("Withdrawal successful!", "ok");
 }
 
+async function approveETH ():Promise <void> {
+    hideLiqStatus ();
+    const ethAmnt = parseEther(liqEth.value ) as bigint;
+    if (ethAmnt <=0){
+        showMessage ("ETH amount has to be non-zero for approval", "wrn");
+        return;
+    }
+    
+    await setUpWalletClients ();
+
+    const hash = await approveToken (WETH_CONTRACT_ADDRESS, ethAmnt) as `0x${string}`;
+    showMessage ("Approving "+liqEth.value+" ETH ... ", "ok");
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    let msg:string =  liqEth.value+" ETH has been approved!";
+    if (receipt.status !== 'success')
+        msg = "ETH approval failed!";
+    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
+}
+
+async function approveUSDC ():Promise <void> {
+    const usdcAmnt = parseUsdc (liqUsdc.value ) as bigint;
+
+    if (usdcAmnt <=0){
+        showMessage ("USDC amount has to be non-zero for approval", "wrn");
+        return;
+    }
+    await setUpWalletClients ();
+
+    const hash = await approveToken (USDC_CONTRACT_ADDRESS, usdcAmnt) as `0x${string}`;
+    showMessage ("Approving "+liqUsdc.value+" USDC ... ", "ok");
+
+    const receipt = await publicClient!.waitForTransactionReceipt({ hash });
+    let msg:string =  liqUsdc.value+" USDC has been approved!";
+    if (receipt.status !== 'success')
+        msg = "USDC approval failed!";
+    showMessage (msg, receipt.status !== 'success'? "err" : "ok");
+}
+
+async function approveToken(tokenAddress:`0x${string}`, amount: bigint): Promise<`0x${string}`> {
+    await setUpPublicClients();
+    await setUpWalletClients();
+    const currentChain: Chain = await getCurrentChain(publicClient!);
+    const { request } = await publicClient!.simulateContract({
+            address: tokenAddress,  
+            abi: APPROVE_ABI,          
+            functionName: "approve",
+            args: [contractAddress, amount],
+            chain: currentChain,
+            account: connectedAccount
+    });
+    return await walletClient!.writeContract(request) as `0x${string}`;
+}
+
+async function connect(): Promise<void> {
+    walletClient = await createWalletClient({ transport: custom(window.ethereum!) });
+    const [account] = await walletClient.requestAddresses();
+    connectedAccount = account;
+    btnConnect.innerText = account.slice(0, 6) + "..." + account.slice(-4);
+    chainBadge.innerText =  supportedChainInfo[network].name;
+    localStorage.setItem(KEY_CONNECTED, "1");
+    initFetchFeed ();
+}
+
+async function restoreConnection ():Promise <void> {
+    if (localStorage.getItem(KEY_CONNECTED) !== "1") return;
+    walletClient = await createWalletClient({ transport: custom(window.ethereum!) });
+
+    const addrs = await walletClient.getAddresses(); 
+    if (addrs.length === 0) {
+        localStorage.removeItem(KEY_CONNECTED);
+        return;
+    }
+    connectedAccount = addrs[0];
+    btnConnect.innerText = connectedAccount.slice(0, 6) + "..." + connectedAccount.slice(-4);
+    chainBadge.innerText = supportedChainInfo[network].name;
+}
+
+/* UI updates */
 async function refreshFees () : Promise <void> {
     refreshProviderFees ();
 }
@@ -580,26 +471,14 @@ function hideLiqStatus() {
     status.classList.add("hidden");
 }
 
-function calculateOtherAmount (amount:bigint, token:number): bigint | undefined {
-    if (token<0 || token >1 ) {
-        showMessage ("invalid token", "wrn");
-        return;
-    }
-    let rate:number = parseFloat (kpiPrice.innerText);
-    if (isNaN (rate)){
-        showMessage ("Exchange Rate is not available", "wrn");
-        return;
-    }
-    rate = rate + 10;
-    if (token === 0) {
-        const eth = Number(amount) / 1e18;
-        const usdc = eth * rate;
-        return BigInt(Math.floor(usdc * 1e6)); 
-    } else {
-        const usdc = Number(amount) / 1e6;
-        const eth = usdc / rate;
-        return BigInt(Math.floor(eth * 1e18)); 
-    }
+async function swapTokenInChanged ():Promise <void> {
+    swapTokenOut.value = swapTokenIn.value === "USDC" ? "WETH" : "USDC";
+    updateQuote ();
+}
+
+async function swapTokenOutChanged ():Promise <void> {
+    swapTokenIn.value = swapTokenOut.value === "USDC" ? "WETH" : "USDC";
+    updateQuote ();
 }
 
 function updateLiqUSDC  () {
@@ -626,6 +505,131 @@ function updateLiqETH () {
     liqEth.value = formatEther (ethAmount);
 }
 
+async function updateQuote ():Promise <void> {
+    const amount = (swapTokenIn.value === "USDC"? parseUsdc (swapAmountIn.value) : parseEther (swapAmountIn.value)) as bigint;
+    quotedAmount = await getQuote (amount) as bigint;
+    swapEstimatedOut.value = (swapTokenIn.value === "USDC"? formatEther (quotedAmount) : formatUsdc (quotedAmount)) as string ;
+}
+
+function setProviderBtn () {
+    btnProvide.innerText = (!poolSeeded? "Seed": "Depost") as string; 
+}
+
+async function initFetchFeed(): Promise<void> {
+    const [usdcReserve, ethReserve] = await readContract<[bigint, bigint]>(
+      "getReserves",
+      false,
+      false
+    ) as [bigint, bigint];
+  
+    const [usdcFees, ethFees] = await readContract<[bigint, bigint]>(
+      "getAccruedSweepFees",
+      false,
+      false
+    ) as [bigint, bigint];
+  
+    const exchangeRate = await readContract<bigint>(
+      "getPoolExchangeRate",
+      false,
+      false
+    ) as bigint | undefined;;
+  
+    kpiUsdc.innerText = setPrecision (formatUsdc (usdcReserve));
+    kpiEth.innerText = setPrecision (formatEther(ethReserve));
+    kpiSwapFees.innerText = `${setPrecision (formatUsdc(usdcFees))} / ${setPrecision (formatEther(ethFees))}`;
+    if (exchangeRate !== undefined)
+            kpiPrice.innerText = setPrecision (exchangeRate.toString());
+  
+    if (localStorage.getItem(KEY_CONNECTED) === "1" && walletClient != null) {
+     if (!poolSeeded)
+        showMessage ("the pool is not seeded yet!", "wrn");
+     else {
+        const addrs = await walletClient.getAddresses();
+        if (addrs.length > 0) {
+            const yourUelp = await readContract<bigint>(
+            "getLPBalanceByProvider",
+            true,
+            false
+            ) as bigint;
+            kpiUelp.innerText = setPrecision (formatEther(yourUelp));
+        }
+      }
+    }
+
+    refreshProviderFees ();
+}
+
+async function refreshProviderFees () : Promise <void> {
+    const [usdcFeesR, ethFeesR] = await readContract<[bigint, bigint]>(
+        "getAccruedProtocolFees",
+        true,
+        false
+      ) as [bigint, bigint];
+    
+    feeUsdc.value = formatUsdc (usdcFeesR);
+    feeEth.value = formatEther (ethFeesR);
+}
+
+/*utilities */
+function parseUsdc(input: string): bigint {
+    const [intPart, fracPart = ""] = input.split(".");
+    const frac = (fracPart + "000000").slice(0, 6);
+    return BigInt(intPart) * 10n ** 6n + BigInt(frac);
+}
+  
+
+function formatUsdc(amount: bigint): string {
+    const divisor = 10n ** 6n;
+    const whole = amount / divisor;
+    const fraction = amount % divisor;
+  
+    const fractionStr = fraction.toString().padStart(6, "0");
+  
+    const trimmedFraction = fractionStr.replace(/0+$/, "");
+  
+    return trimmedFraction.length > 0
+      ? `${whole.toString()}.${trimmedFraction}`
+      : whole.toString();
+}
+
+function setPrecision (numStr:string) {
+    return parseFloat (numStr).toFixed (3).toString ();
+}
+
+/* Misc */
+function calculateOtherAmount (amount:bigint, token:number): bigint | undefined {
+    if (token<0 || token >1 ) {
+        showMessage ("invalid token", "wrn");
+        return;
+    }
+    let rate:number = parseFloat (kpiPrice.innerText);
+    if (isNaN (rate)){
+        showMessage ("Exchange Rate is not available", "wrn");
+        return;
+    }
+    rate = rate + 10; // this makes sure calculated rate does not fall below the pull rate
+    if (token === 0) {
+        const eth = Number(amount) / 1e18;
+        const usdc = eth * rate;
+        return BigInt(Math.floor(usdc * 1e6)); 
+    } else {
+        const usdc = Number(amount) / 1e6;
+        const eth = usdc / rate;
+        return BigInt(Math.floor(eth * 1e18)); 
+    }
+}
+
+
+async function main () : Promise <void> {
+    if (!ensureEthereumOrWarn()) return; 
+    const lpTokenAddress = await readContract ("getMyERC20ContractAddress",false, false, []) as `0x${string}`;
+    console.log ("===>", lpTokenAddress);
+    ensureEthereumOrWarn ();
+    poolSeeded = await readContract ("isSeeded",false, false) as boolean;
+    restoreConnection();
+    initFetchFeed ();
+    setProviderBtn ();
+}
 
 btnConnect.onclick = connect
 btnApproveEth.onclick = approveETH 
@@ -658,22 +662,12 @@ function detectPlatform(): "android" | "ios" | "desktop" {
     return "desktop";
   }
   
-
-  
-  
   function ensureEthereumOrWarn(): boolean {
-    const hasEth = typeof (window as any).ethereum !== "undefined";
-    if (hasEth)
+    const hasEthWallet = typeof (window as any).ethereum !== "undefined";
+    if (hasEthWallet)
       return true;
-    
-  
     const platform = detectPlatform();
-    const METAMASK_LINK: Record<"android" | "ios" | "desktop", string> = {
-        android: "https://play.google.com/store/apps/details?id=io.metamask",
-        ios: "https://apps.apple.com/app/metamask-blockchain-wallet/id1438144202",
-        desktop: "https://metamask.io/download/",
-      };
-    const targetUrl = METAMASK_LINK[platform];
+    const targetUrl = metamask_links [platform];
     const label = platform === "desktop" ? "Desktop" : platform.toUpperCase();
     status.classList.remove ("hidden");
     status.innerHTML =
